@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Recordatorio de Cita</h2>
+
+<p>Hola {{ nombre }},</p>
+
+<p>Te recordamos que tienes una cita programada para mañana {{ fecha }}.</p>
+
+<h3>Servicios programados:</h3>
+<ul>
+{% for servicio in servicios %}
+    <li>{{ servicio }}</li>
+{% endfor %}
+</ul>
+
+<p>Recomendaciones:</p>
+<ul>
+    <li>Llega 10 minutos antes de la hora programada</li>
+    <li>Trae la documentación del vehículo</li>
+    <li>Si necesitas cancelar, hazlo con al menos 24 horas de anticipación</li>
+</ul>
+
+<p>¡Te esperamos!</p>
+{% endblock %} 
