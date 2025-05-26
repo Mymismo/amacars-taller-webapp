@@ -1,10 +1,12 @@
 import axios from 'axios';
 
 export const api = axios.create({
-    baseURL: 'http://localhost:5173/api/v1',
+    baseURL: 'http://localhost:8000/api/v1',
     headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
     },
+    withCredentials: true
 });
 
 api.interceptors.request.use(
@@ -12,6 +14,9 @@ api.interceptors.request.use(
         const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+        }
+        if (config.url?.includes('/auth/login')) {
+            config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
         return config;
     },

@@ -1,6 +1,7 @@
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, JSON
 from sqlalchemy.orm import relationship
-from .base import Base
+from app.models.base import Base
 
 class HistorialServicio(Base):
     __tablename__ = "historial_servicios"
@@ -17,8 +18,8 @@ class HistorialServicio(Base):
     costo_total = Column(Float, nullable=False)
 
     # Relaciones
-    cita = relationship("Cita", back_populates="historial")
-    vehiculo = relationship("Vehiculo", back_populates="historial")
+    cita = relationship("Cita", back_populates="historial_servicio")
+    vehiculo = relationship("Vehiculo", back_populates="historial_servicios")
     tecnico = relationship("Usuario")
     servicios = relationship("ServicioRealizado", back_populates="historial")
 
@@ -37,7 +38,7 @@ class ServicioRealizado(Base):
 
     # Relaciones
     historial = relationship("HistorialServicio", back_populates="servicios")
-    servicio = relationship("Servicio", back_populates="historial_servicios")
+    servicio = relationship("Servicio")
 
     def __repr__(self):
         return f"<ServicioRealizado {self.servicio_id} - {self.costo}>" 

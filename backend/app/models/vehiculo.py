@@ -19,6 +19,7 @@ class Vehiculo(Base):
     # Relaciones
     propietario = relationship("Usuario", back_populates="vehiculos")
     citas = relationship("Cita", back_populates="vehiculo")
+    historial_servicios = relationship("HistorialServicio", back_populates="vehiculo")
     
     def __repr__(self):
         return f"<Vehiculo {self.marca} {self.modelo} - {self.matricula}>" 

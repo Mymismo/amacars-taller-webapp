@@ -10,11 +10,10 @@ import {
     useToast,
     Link,
 } from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { api } from '../../api/config';
+import { authService } from '../../api/services';
 
 interface LoginForm {
     email: string;
@@ -23,21 +22,15 @@ interface LoginForm {
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>();
-    const { login } = useAuth();
     const toast = useToast();
     const navigate = useNavigate();
 
     const onSubmit = async (data: LoginForm) => {
         try {
-            const formData = new FormData();
-            formData.append('username', data.email);
-            formData.append('password', data.password);
+            const response = await authService.login(data.email, data.password);
             
-            const response = await api.post('/auth/login', formData);
-            const { access_token, user } = response.data;
-            
-            localStorage.setItem('token', access_token);
-            api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+            // Guardar el token
+            localStorage.setItem('token', response.access_token);
             
             toast({
                 title: 'Inicio de sesión exitoso',
@@ -47,12 +40,12 @@ const Login = () => {
             });
             
             // Redirigir según el rol del usuario
-            if (user.rol === 'ADMIN') {
+            if (response.user.rol === 'admin') {
                 navigate('/dashboard');
             } else {
                 navigate('/mis-citas');
             }
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: 'Error al iniciar sesión',
                 description: 'Credenciales inválidas',
@@ -100,7 +93,7 @@ const Login = () => {
 
                     <Button
                         type="submit"
-                        colorScheme="brand"
+                        colorScheme="blue"
                         size="lg"
                         fontSize="md"
                         isLoading={isSubmitting}
@@ -110,7 +103,7 @@ const Login = () => {
 
                     <Text textAlign="center">
                         ¿No tienes una cuenta?{' '}
-                        <Link as={RouterLink} to="/register" color="brand.500">
+                        <Link as={RouterLink} to="/register" color="blue.500">
                             Regístrate aquí
                         </Link>
                     </Text>

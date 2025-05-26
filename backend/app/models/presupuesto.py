@@ -24,6 +24,7 @@ class Presupuesto(Base):
     
     # Relaciones
     cita = relationship("Cita", back_populates="presupuesto", uselist=False)
+    notificaciones = relationship("Notificacion", back_populates="presupuesto")
     
     def __repr__(self):
         return f"<Presupuesto {self.id} - {self.total}€>" 

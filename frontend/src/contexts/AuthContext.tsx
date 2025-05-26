@@ -56,19 +56,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const login = async (email: string, password: string) => {
         try {
-            const formData = new FormData();
-            formData.append('username', email);
-            formData.append('password', password);
-            
-            const response = await api.post('/auth/login', formData);
-            const { access_token, user } = response.data;
+            const response = await authService.login(email, password);
+            const { access_token, user } = response;
             
             localStorage.setItem('token', access_token);
             api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
             setUser(user);
             
             // Redirigir según el rol
-            if (user.rol === 'ADMIN') {
+            if (user.rol === 'admin') {
                 navigate('/dashboard');
             } else {
                 navigate('/mis-citas');

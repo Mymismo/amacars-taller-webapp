@@ -25,9 +25,9 @@ class Notificacion(Base):
     fecha_creacion = Column(DateTime, default=datetime.utcnow)
     fecha_lectura = Column(DateTime, nullable=True)
     leida = Column(Boolean, default=False)
-    usuario_id = Column(Integer, ForeignKey('usuarios.id'), nullable=False)
-    cita_id = Column(Integer, ForeignKey('citas.id'), nullable=True)
-    presupuesto_id = Column(Integer, ForeignKey('presupuestos.id'), nullable=True)
+    usuario_id = Column(Integer, ForeignKey('usuarios.id', ondelete='CASCADE'), nullable=False)
+    cita_id = Column(Integer, ForeignKey('citas.id', ondelete='SET NULL'), nullable=True)
+    presupuesto_id = Column(Integer, ForeignKey('presupuestos.id', ondelete='SET NULL'), nullable=True)
     
     # Relaciones
     usuario = relationship("Usuario", back_populates="notificaciones")

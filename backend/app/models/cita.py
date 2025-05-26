@@ -31,6 +31,8 @@ class Cita(Base):
     vehiculo = relationship("Vehiculo", back_populates="citas")
     presupuesto = relationship("Presupuesto", back_populates="cita", uselist=False)
     servicios = relationship("Servicio", secondary=cita_servicio, back_populates="citas")
+    notificaciones = relationship("Notificacion", back_populates="cita")
+    historial_servicio = relationship("HistorialServicio", back_populates="cita", uselist=False)
     
     def __repr__(self):
         return f"<Cita {self.fecha_hora} - {self.estado}>" 

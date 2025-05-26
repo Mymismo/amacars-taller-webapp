@@ -59,27 +59,37 @@ def register(
     """
     Registrar un nuevo usuario.
     """
-    user = db.query(Usuario).filter(Usuario.email == user_in.email).first()
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email ya está registrado en el sistema"
+    try:
+        # Verificar si el email ya existe
+        user = db.query(Usuario).filter(Usuario.email == user_in.email).first()
+        if user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="El email ya está registrado en el sistema"
+            )
+        
+        # Crear el nuevo usuario
+        user = Usuario(
+            email=user_in.email,
+            hashed_password=get_password_hash(user_in.password),
+            nombre=user_in.nombre,
+            apellidos=user_in.apellidos,
+            telefono=user_in.telefono,
+            direccion=user_in.direccion if hasattr(user_in, 'direccion') else None,
+            rol=user_in.rol,
+            es_activo=True,
+            es_superusuario=False
         )
-    
-    user = Usuario(
-        email=user_in.email,
-        hashed_password=get_password_hash(user_in.password),
-        nombre=user_in.nombre,
-        apellidos=user_in.apellidos,
-        telefono=user_in.telefono,
-        direccion=user_in.direccion,
-        rol=user_in.rol,
-        es_activo=True
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al crear el usuario: {str(e)}"
+        )
 
 @router.post("/test-token", response_model=UsuarioSchema)
 def test_token(current_user: Usuario = Depends(deps.get_current_user)) -> Any:

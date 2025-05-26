@@ -9,23 +9,30 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-# Configurar CORS
+# Configuración de CORS
+origins = [
+    "http://localhost:3007",
+    "http://127.0.0.1:3007",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3007", "http://localhost:5173", "http://localhost:5174"],
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Incluir rutas de la API
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
-async def root():
+def root():
     return {
         "message": "Bienvenido a la API de AMACARS",
         "version": settings.VERSION,
-        "docs_url": "/docs",
-        "redoc_url": "/redoc"
+        "docs_url": "/docs"
     } 

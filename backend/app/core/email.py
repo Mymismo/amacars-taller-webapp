@@ -1,21 +1,23 @@
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from jinja2 import Environment, select_autoescape, PackageLoader
 from pydantic import EmailStr
 from app.core.config import settings
+from pathlib import Path
 
-# Configuración de FastMail
+# Configuración del servicio de correo
 conf = ConnectionConfig(
-    MAIL_USERNAME=settings.SMTP_USER,
-    MAIL_PASSWORD=settings.SMTP_PASSWORD,
-    MAIL_FROM=settings.EMAILS_FROM_EMAIL,
-    MAIL_PORT=settings.SMTP_PORT,
-    MAIL_SERVER=settings.SMTP_HOST,
-    MAIL_FROM_NAME=settings.EMAILS_FROM_NAME,
+    MAIL_USERNAME=settings.SMTP_USER if hasattr(settings, 'SMTP_USER') else None,
+    MAIL_PASSWORD=settings.SMTP_PASSWORD if hasattr(settings, 'SMTP_PASSWORD') else None,
+    MAIL_FROM=settings.EMAILS_FROM_EMAIL if hasattr(settings, 'EMAILS_FROM_EMAIL') else None,
+    MAIL_FROM_NAME=settings.EMAILS_FROM_NAME if hasattr(settings, 'EMAILS_FROM_NAME') else None,
+    MAIL_PORT=settings.SMTP_PORT if hasattr(settings, 'SMTP_PORT') else 587,
+    MAIL_SERVER=settings.SMTP_HOST if hasattr(settings, 'SMTP_HOST') else "smtp.gmail.com",
+    MAIL_SSL_TLS=settings.SMTP_TLS if hasattr(settings, 'SMTP_TLS') else True,
     MAIL_STARTTLS=True,
-    MAIL_SSL_TLS=False,
-    USE_CREDENTIALS=True
+    USE_CREDENTIALS=True,
+    TEMPLATE_FOLDER=Path(__file__).parent.parent / 'templates'
 )
 
 # Configuración de Jinja2 para templates
@@ -24,9 +26,21 @@ env = Environment(
     autoescape=select_autoescape(['html', 'xml'])
 )
 
+# Inicializar el servicio de correo solo si todas las credenciales están presentes
+email_service = None
+try:
+    if all([
+        conf.MAIL_USERNAME,
+        conf.MAIL_PASSWORD,
+        conf.MAIL_FROM
+    ]):
+        email_service = FastMail(conf)
+except Exception as e:
+    print(f"Error al inicializar el servicio de correo: {str(e)}")
+
 class EmailService:
     def __init__(self):
-        self.fastmail = FastMail(conf)
+        self.fastmail = email_service
     
     async def send_email(
         self,
@@ -34,21 +48,30 @@ class EmailService:
         subject: str,
         template_name: str,
         template_data: Dict[str, Any]
-    ) -> None:
+    ) -> bool:
         """
         Enviar email usando un template.
         """
-        template = env.get_template(f"{template_name}.html")
-        html = template.render(**template_data)
+        if not self.fastmail:
+            print("Servicio de correo no configurado")
+            return False
         
-        message = MessageSchema(
-            subject=subject,
-            recipients=[email_to],
-            body=html,
-            subtype="html"
-        )
-        
-        await self.fastmail.send_message(message)
+        try:
+            template = env.get_template(f"{template_name}.html")
+            html = template.render(**template_data)
+            
+            message = MessageSchema(
+                subject=subject,
+                recipients=[email_to],
+                body=html,
+                subtype="html"
+            )
+            
+            await self.fastmail.send_message(message)
+            return True
+        except Exception as e:
+            print(f"Error enviando correo: {str(e)}")
+            return False
     
     async def send_cita_confirmacion(
         self,
@@ -56,11 +79,11 @@ class EmailService:
         nombre: str,
         fecha: str,
         servicios: List[str]
-    ) -> None:
+    ) -> bool:
         """
         Enviar email de confirmación de cita.
         """
-        await self.send_email(
+        return await self.send_email(
             email_to=email_to,
             subject="Confirmación de Cita - AMACARS",
             template_name="cita_confirmacion",
@@ -78,7 +101,7 @@ class EmailService:
         presupuesto_id: int,
         total: float,
         pdf_path: str
-    ) -> None:
+    ) -> bool:
         """
         Enviar email con presupuesto adjunto.
         """
@@ -88,14 +111,12 @@ class EmailService:
             "total": total
         }
         
-        message = MessageSchema(
+        return await self.send_email(
+            email_to=email_to,
             subject=f"Presupuesto #{presupuesto_id} - AMACARS",
-            recipients=[email_to],
-            template_body=template_data,
-            attachments=[pdf_path]
+            template_name="presupuesto",
+            template_data=template_data
         )
-        
-        await self.fastmail.send_message(message)
     
     async def send_notificacion_servicio_completado(
         self,
@@ -104,7 +125,7 @@ class EmailService:
         vehiculo: str,
         servicios: List[str],
         pdf_path: str = None
-    ) -> None:
+    ) -> bool:
         """
         Enviar notificación de servicio completado.
         """
@@ -114,14 +135,12 @@ class EmailService:
             "servicios": servicios
         }
         
-        message = MessageSchema(
+        return await self.send_email(
+            email_to=email_to,
             subject="Servicio Completado - AMACARS",
-            recipients=[email_to],
-            template_body=template_data,
-            attachments=[pdf_path] if pdf_path else None
+            template_name="servicio_completado",
+            template_data=template_data
         )
-        
-        await self.fastmail.send_message(message)
     
     async def send_recordatorio_cita(
         self,
@@ -129,11 +148,11 @@ class EmailService:
         nombre: str,
         fecha: str,
         servicios: List[str]
-    ) -> None:
+    ) -> bool:
         """
         Enviar recordatorio de cita.
         """
-        await self.send_email(
+        return await self.send_email(
             email_to=email_to,
             subject="Recordatorio de Cita - AMACARS",
             template_name="recordatorio_cita",
@@ -144,4 +163,4 @@ class EmailService:
             }
         )
 
-email_service = EmailService() 
+email_service_instance = EmailService() 

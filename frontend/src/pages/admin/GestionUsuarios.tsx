@@ -13,6 +13,7 @@ import {
   Box
 } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
+import { api } from '../../api/config';
 
 interface Usuario {
   id: number;
@@ -24,27 +25,24 @@ interface Usuario {
 
 const GestionUsuarios: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const { token } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchUsuarios = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/auth/usuarios', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUsuarios(data);
+        const response = await api.get('/api/v1/usuarios');
+        if (response.status === 200) {
+          setUsuarios(response.data);
         }
       } catch (error) {
         console.error('Error al cargar usuarios:', error);
       }
     };
 
-    fetchUsuarios();
-  }, [token]);
+    if (user?.rol === 'ADMIN') {
+      fetchUsuarios();
+    }
+  }, [user]);
 
   return (
     <Container maxWidth="lg">
