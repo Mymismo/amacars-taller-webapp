@@ -1,30 +1,29 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, Enum, JSON
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, Enum
 from sqlalchemy.orm import relationship
+from app.models.base import Base
 import enum
-from .base import Base
 
 class EstadoPresupuesto(str, enum.Enum):
     PENDIENTE = "pendiente"
-    ACEPTADO = "aceptado"
+    APROBADO = "aprobado"
     RECHAZADO = "rechazado"
-    EXPIRADO = "expirado"
+    COMPLETADO = "completado"
 
 class Presupuesto(Base):
-    usuario_id = Column(Integer, ForeignKey("usuario.id"), nullable=False)
-    vehiculo_id = Column(Integer, ForeignKey("vehiculo.id"), nullable=False)
-    fecha_emision = Column(DateTime, nullable=False)
-    fecha_validez = Column(DateTime, nullable=False)
-    items = Column(JSON, nullable=False)  # Lista de PresupuestoItem
-    subtotal = Column(Float, nullable=False)
-    impuestos = Column(Float, nullable=False)
-    total = Column(Float, nullable=False)
-    estado = Column(Enum(EstadoPresupuesto), nullable=False, default=EstadoPresupuesto.PENDIENTE)
-    notas = Column(String)
+    __tablename__ = "presupuestos"
 
+    id = Column(Integer, primary_key=True, index=True)
+    fecha_creacion = Column(DateTime, default=datetime.utcnow)
+    descripcion = Column(String(500))
+    mano_obra = Column(Float, default=0.0)
+    costo_piezas = Column(Float, default=0.0)
+    total = Column(Float, default=0.0)
+    estado = Column(Enum(EstadoPresupuesto), default=EstadoPresupuesto.PENDIENTE)
+    notas = Column(String(1000))
+    
     # Relaciones
-    usuario = relationship("Usuario", backref="presupuestos")
-    vehiculo = relationship("Vehiculo", backref="presupuestos")
     cita = relationship("Cita", back_populates="presupuesto", uselist=False)
-
+    
     def __repr__(self):
-        return f"<Presupuesto {self.fecha_emision} - {self.total}>" 
+        return f"<Presupuesto {self.id} - {self.total}€>" 

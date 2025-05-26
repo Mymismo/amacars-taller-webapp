@@ -1,37 +1,24 @@
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from datetime import datetime
+from pydantic import BaseModel, condecimal
 from .base import BaseSchema, IDSchema, TimestampSchema
 from app.models.presupuesto import EstadoPresupuesto
 
-class PresupuestoItemBase(BaseSchema):
-    servicio_id: int
-    cantidad: int
-    precio_unitario: float
-    descripcion: Optional[str] = None
-
 class PresupuestoBase(BaseSchema):
-    usuario_id: int
-    vehiculo_id: int
-    fecha_emision: datetime
-    fecha_validez: datetime
-    items: List[Dict[str, Any]]
-    subtotal: float
-    impuestos: float
-    total: float
+    descripcion: str
+    monto_total: condecimal(decimal_places=2)
     estado: EstadoPresupuesto = EstadoPresupuesto.PENDIENTE
+    fecha_validez: datetime
+    cita_id: int
     notas: Optional[str] = None
+    descuento: condecimal(decimal_places=2) = 0.0
+    servicios_ids: List[int] = []
 
 class PresupuestoCreate(PresupuestoBase):
     pass
 
-class PresupuestoUpdate(BaseSchema):
-    fecha_validez: Optional[datetime] = None
-    items: Optional[List[Dict[str, Any]]] = None
-    subtotal: Optional[float] = None
-    impuestos: Optional[float] = None
-    total: Optional[float] = None
-    estado: Optional[EstadoPresupuesto] = None
-    notas: Optional[str] = None
+class PresupuestoUpdate(PresupuestoBase):
+    pass
 
 class Presupuesto(PresupuestoBase, IDSchema, TimestampSchema):
     pass 

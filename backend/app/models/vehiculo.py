@@ -1,23 +1,24 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Date
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from .base import Base
+from app.models.base import Base
+from datetime import datetime
 
 class Vehiculo(Base):
-    usuario_id = Column(Integer, ForeignKey("usuario.id"), nullable=False)
-    marca = Column(String, nullable=False)
-    modelo = Column(String, nullable=False)
-    ano = Column(Integer, nullable=False)
-    placa = Column(String, unique=True, index=True, nullable=False)
-    color = Column(String)
-    vin = Column(String, unique=True, index=True)
-    kilometraje = Column(Integer, default=0)
-    fecha_ultimo_servicio = Column(Date)
-    notas = Column(String)
+    __tablename__ = "vehiculos"
 
+    id = Column(Integer, primary_key=True, index=True)
+    marca = Column(String(100), nullable=False)
+    modelo = Column(String(100), nullable=False)
+    anio = Column(Integer, nullable=False)
+    matricula = Column(String(20), unique=True, nullable=False)
+    color = Column(String(50))
+    kilometraje = Column(Integer)
+    fecha_ultima_revision = Column(DateTime, default=datetime.utcnow)
+    propietario_id = Column(Integer, ForeignKey('usuarios.id'))
+    
     # Relaciones
-    usuario = relationship("Usuario", back_populates="vehiculos")
-    citas = relationship("Cita", back_populates="vehiculo", cascade="all, delete-orphan")
-    historial = relationship("HistorialServicio", back_populates="vehiculo", cascade="all, delete-orphan")
-
+    propietario = relationship("Usuario", back_populates="vehiculos")
+    citas = relationship("Cita", back_populates="vehiculo")
+    
     def __repr__(self):
-        return f"<Vehiculo {self.marca} {self.modelo} - {self.placa}>" 
+        return f"<Vehiculo {self.marca} {self.modelo} - {self.matricula}>" 

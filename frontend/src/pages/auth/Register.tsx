@@ -1,220 +1,178 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Box,
-  Link,
-  Alert,
-  CircularProgress,
-  Grid
-} from '@mui/material';
+    Box,
+    Button,
+    FormControl,
+    FormLabel,
+    Input,
+    Stack,
+    Text,
+    useToast,
+    Link,
+    FormErrorMessage,
+} from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useForm } from 'react-hook-form';
+import { api } from '../../api/config';
+
+interface RegisterForm {
+    nombre: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    telefono: string;
+}
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    email: '',
-    telefono: '',
-    direccion: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [error, setError] = useState<string | null>(null);
-  const { register, isLoading } = useAuth();
-  const navigate = useNavigate();
+    const { register, handleSubmit, formState: { errors, isSubmitting }, watch } = useForm<RegisterForm>();
+    const toast = useToast();
+    const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+    const onSubmit = async (data: RegisterForm) => {
+        try {
+            await api.post('/auth/registro', {
+                nombre: data.nombre,
+                email: data.email,
+                password: data.password,
+                telefono: data.telefono,
+                apellidos: '', // Campo requerido por el backend
+                direccion: '', // Campo requerido por el backend
+                rol: 'CLIENTE', // Por defecto para nuevos registros
+            });
+            
+            toast({
+                title: 'Registro exitoso',
+                description: 'Ya puedes iniciar sesión',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+            
+            navigate('/login');
+        } catch (error: any) {
+            toast({
+                title: 'Error al registrarse',
+                description: error.response?.data?.detail || 'Por favor, intenta nuevamente',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    return (
+        <Box p={8} maxWidth="500px" mx="auto">
+            <Text fontSize="2xl" fontWeight="bold" mb={8} textAlign="center">
+                Registro
+            </Text>
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <Stack spacing={4}>
+                    <FormControl isInvalid={!!errors.nombre}>
+                        <FormLabel>Nombre</FormLabel>
+                        <Input
+                            {...register('nombre', {
+                                required: 'El nombre es requerido',
+                                minLength: {
+                                    value: 2,
+                                    message: 'El nombre debe tener al menos 2 caracteres',
+                                },
+                            })}
+                        />
+                        <FormErrorMessage>
+                            {errors.nombre && errors.nombre.message}
+                        </FormErrorMessage>
+                    </FormControl>
 
-    // Validaciones
-    if (formData.password !== formData.confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      return;
-    }
+                    <FormControl isInvalid={!!errors.email}>
+                        <FormLabel>Email</FormLabel>
+                        <Input
+                            type="email"
+                            {...register('email', {
+                                required: 'El email es requerido',
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: 'Email inválido',
+                                },
+                            })}
+                        />
+                        <FormErrorMessage>
+                            {errors.email && errors.email.message}
+                        </FormErrorMessage>
+                    </FormControl>
 
-    if (formData.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
+                    <FormControl isInvalid={!!errors.password}>
+                        <FormLabel>Contraseña</FormLabel>
+                        <Input
+                            type="password"
+                            {...register('password', {
+                                required: 'La contraseña es requerida',
+                                minLength: {
+                                    value: 6,
+                                    message: 'La contraseña debe tener al menos 6 caracteres',
+                                },
+                            })}
+                        />
+                        <FormErrorMessage>
+                            {errors.password && errors.password.message}
+                        </FormErrorMessage>
+                    </FormControl>
 
-    try {
-      const userData = {
-        ...formData,
-        rol: 'cliente',
-        activo: true,
-        fecha_registro: new Date().toISOString(),
-      };
-      
-      delete userData.confirmPassword;
-      await register(userData);
-      navigate('/auth/login', { state: { message: 'Registro exitoso. Por favor, inicia sesión.' } });
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al registrar usuario');
-    }
-  };
+                    <FormControl isInvalid={!!errors.confirmPassword}>
+                        <FormLabel>Confirmar Contraseña</FormLabel>
+                        <Input
+                            type="password"
+                            {...register('confirmPassword', {
+                                required: 'Debes confirmar la contraseña',
+                                validate: (val: string) => {
+                                    if (watch('password') != val) {
+                                        return "Las contraseñas no coinciden";
+                                    }
+                                }
+                            })}
+                        />
+                        <FormErrorMessage>
+                            {errors.confirmPassword && errors.confirmPassword.message}
+                        </FormErrorMessage>
+                    </FormControl>
 
-  return (
-    <Container component="main" maxWidth="sm">
-      <Box
-        sx={{
-          marginTop: 8,
-          marginBottom: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <Typography component="h1" variant="h5" gutterBottom>
-            Registro de Usuario
-          </Typography>
+                    <FormControl isInvalid={!!errors.telefono}>
+                        <FormLabel>Teléfono</FormLabel>
+                        <Input
+                            type="tel"
+                            {...register('telefono', {
+                                required: 'El teléfono es requerido',
+                                pattern: {
+                                    value: /^[0-9]{9}$/,
+                                    message: 'El teléfono debe tener 9 dígitos',
+                                },
+                            })}
+                        />
+                        <FormErrorMessage>
+                            {errors.telefono && errors.telefono.message}
+                        </FormErrorMessage>
+                    </FormControl>
 
-          {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+                    <Button
+                        type="submit"
+                        colorScheme="brand"
+                        size="lg"
+                        fontSize="md"
+                        isLoading={isSubmitting}
+                        w="100%"
+                    >
+                        Registrarse
+                    </Button>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="nombre"
-                  label="Nombre"
-                  name="nombre"
-                  autoComplete="given-name"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="apellido"
-                  label="Apellido"
-                  name="apellido"
-                  autoComplete="family-name"
-                  value={formData.apellido}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="email"
-                  label="Correo Electrónico"
-                  name="email"
-                  autoComplete="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="telefono"
-                  label="Teléfono"
-                  name="telefono"
-                  autoComplete="tel"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  id="direccion"
-                  label="Dirección"
-                  name="direccion"
-                  autoComplete="street-address"
-                  value={formData.direccion}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  name="password"
-                  label="Contraseña"
-                  type="password"
-                  id="password"
-                  autoComplete="new-password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  name="confirmPassword"
-                  label="Confirmar Contraseña"
-                  type="password"
-                  id="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-              </Grid>
-            </Grid>
-
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={isLoading}
-            >
-              {isLoading ? <CircularProgress size={24} /> : 'Registrarse'}
-            </Button>
-
-            <Box sx={{ textAlign: 'center' }}>
-              <Link component={RouterLink} to="/auth/login" variant="body2">
-                ¿Ya tienes una cuenta? Inicia sesión
-              </Link>
-            </Box>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
-  );
+                    <Text textAlign="center">
+                        ¿Ya tienes una cuenta?{' '}
+                        <Link as={RouterLink} to="/login" color="brand.500">
+                            Inicia sesión aquí
+                        </Link>
+                    </Text>
+                </Stack>
+            </form>
+        </Box>
+    );
 };
 
 export default Register; 

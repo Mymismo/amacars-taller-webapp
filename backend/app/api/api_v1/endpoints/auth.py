@@ -3,44 +3,54 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from app.core.security import create_access_token, verify_password
 from app.core.config import settings
+from app.core import security
+from app.core.security import get_password_hash
 from app.api import deps
-from app.schemas.usuario import Token, Usuario, UsuarioCreate
-from app.models.usuario import Usuario as UsuarioModel
+from app.models.usuario import Usuario
+from app.schemas.usuario import Token, UsuarioCreate, Usuario as UsuarioSchema
 
 router = APIRouter()
 
 @router.post("/login", response_model=Token)
-async def login(
+def login(
     db: Session = Depends(deps.get_db),
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """
     Autenticación OAuth2 usando email y contraseña
     """
-    user = db.query(UsuarioModel).filter(UsuarioModel.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    usuario = db.query(Usuario).filter(Usuario.email == form_data.username).first()
+    if not usuario:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email o contraseña incorrectos",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if not user.activo:
+    if not security.verify_password(form_data.password, usuario.hashed_password):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Email o contraseña incorrectos",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not usuario.es_activo:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario inactivo"
         )
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    return {
-        "access_token": create_access_token(
-            user.email, expires_delta=access_token_expires
-        ),
-        "token_type": "bearer",
-    }
+    access_token = security.create_access_token(
+        usuario.id, expires_delta=access_token_expires
+    )
+    
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        user=usuario
+    )
 
-@router.post("/registro", response_model=Usuario)
+@router.post("/registro", response_model=UsuarioSchema)
 def register(
     *,
     db: Session = Depends(deps.get_db),
@@ -49,30 +59,30 @@ def register(
     """
     Registrar un nuevo usuario.
     """
-    user = db.query(UsuarioModel).filter(UsuarioModel.email == user_in.email).first()
+    user = db.query(Usuario).filter(Usuario.email == user_in.email).first()
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El email ya está registrado en el sistema"
         )
     
-    user = UsuarioModel(
+    user = Usuario(
         email=user_in.email,
         hashed_password=get_password_hash(user_in.password),
         nombre=user_in.nombre,
-        apellido=user_in.apellido,
+        apellidos=user_in.apellidos,
         telefono=user_in.telefono,
         direccion=user_in.direccion,
         rol=user_in.rol,
-        activo=True
+        es_activo=True
     )
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
 
-@router.post("/test-token", response_model=Usuario)
-def test_token(current_user: UsuarioModel = Depends(deps.get_current_user)) -> Any:
+@router.post("/test-token", response_model=UsuarioSchema)
+def test_token(current_user: Usuario = Depends(deps.get_current_user)) -> Any:
     """
     Probar token de acceso.
     """

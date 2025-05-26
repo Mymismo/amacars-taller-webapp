@@ -1,5 +1,6 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+from pydantic import BaseModel, condecimal
 from .base import BaseSchema, IDSchema, TimestampSchema
 
 class ServicioRealizadoBase(BaseSchema):
@@ -21,25 +22,21 @@ class ServicioRealizado(ServicioRealizadoBase, IDSchema, TimestampSchema):
     pass
 
 class HistorialServicioBase(BaseSchema):
-    cita_id: int
     vehiculo_id: int
-    fecha_inicio: datetime
-    fecha_fin: datetime
-    servicios_realizados: List[Dict[str, Any]]
-    kilometraje: int
-    tecnico_id: int
+    servicio_id: int
+    fecha_servicio: datetime
+    kilometraje: Optional[int] = None
+    costo: condecimal(decimal_places=2)
+    descripcion: str
     notas: Optional[str] = None
-    costo_total: float
+    tecnico_id: Optional[int] = None
+    cita_id: Optional[int] = None
 
 class HistorialServicioCreate(HistorialServicioBase):
     pass
 
-class HistorialServicioUpdate(BaseSchema):
-    fecha_fin: Optional[datetime] = None
-    servicios_realizados: Optional[List[Dict[str, Any]]] = None
-    kilometraje: Optional[int] = None
-    notas: Optional[str] = None
-    costo_total: Optional[float] = None
+class HistorialServicioUpdate(HistorialServicioBase):
+    pass
 
 class HistorialServicio(HistorialServicioBase, IDSchema, TimestampSchema):
     pass 

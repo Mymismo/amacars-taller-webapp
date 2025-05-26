@@ -13,7 +13,8 @@ conf = ConnectionConfig(
     MAIL_PORT=settings.SMTP_PORT,
     MAIL_SERVER=settings.SMTP_HOST,
     MAIL_FROM_NAME=settings.EMAILS_FROM_NAME,
-    MAIL_SSL_TLS=settings.SMTP_TLS,
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True
 )
 

@@ -2,6 +2,10 @@ from flask import Flask, send_from_directory
 from src.extensions import db, mail, cors
 import os
 import mimetypes
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 # Agregar tipo MIME para SVG
 mimetypes.add_type('image/svg+xml', '.svg')
@@ -10,23 +14,23 @@ mimetypes.add_type('image/svg+xml', '.svg')
 app = Flask(__name__, static_folder='static')
 
 # Configuración de la aplicación
-app.config['SECRET_KEY'] = 'clave-secreta-temporal'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:My_Root1975@localhost/amacars_db'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'clave-secreta-temporal')
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configuración de correo
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = None
-app.config['MAIL_PASSWORD'] = None
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 
 # Inicializar extensiones
 db.init_app(app)
 mail.init_app(app)
 cors.init_app(app, resources={
-    r"/api/*": {"origins": ["http://localhost:5173"]},
-    r"/static/*": {"origins": ["http://localhost:5173"]}
+    r"/api/*": {"origins": [os.getenv('FRONTEND_URL', 'http://localhost:5173')]},
+    r"/static/*": {"origins": [os.getenv('FRONTEND_URL', 'http://localhost:5173')]}
 })
 
 # Importar rutas después de crear la aplicación para evitar importaciones circulares

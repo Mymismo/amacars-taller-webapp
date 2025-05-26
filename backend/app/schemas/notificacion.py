@@ -1,26 +1,24 @@
 from typing import Optional
 from datetime import datetime
+from pydantic import BaseModel
 from .base import BaseSchema, IDSchema, TimestampSchema
-from app.models.notificacion import TipoNotificacion
+from app.models.notificacion import TipoNotificacion, EstadoNotificacion
 
 class NotificacionBase(BaseSchema):
-    usuario_id: int
-    tipo: TipoNotificacion
     titulo: str
     mensaje: str
-    fecha: datetime
-    leida: bool = False
-    accion: Optional[str] = None
-    grupo_id: Optional[int] = None
+    tipo: TipoNotificacion
+    estado: EstadoNotificacion = EstadoNotificacion.NO_LEIDA
+    usuario_id: int
+    fecha_lectura: Optional[datetime] = None
+    cita_id: Optional[int] = None
+    presupuesto_id: Optional[int] = None
 
 class NotificacionCreate(NotificacionBase):
     pass
 
-class NotificacionUpdate(BaseSchema):
-    titulo: Optional[str] = None
-    mensaje: Optional[str] = None
-    leida: Optional[bool] = None
-    accion: Optional[str] = None
+class NotificacionUpdate(NotificacionBase):
+    pass
 
 class Notificacion(NotificacionBase, IDSchema, TimestampSchema):
     pass 

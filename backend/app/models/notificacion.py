@@ -1,28 +1,38 @@
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Enum
 from sqlalchemy.orm import relationship
 import enum
-from .base import Base
+from app.models.base import Base
 
 class TipoNotificacion(str, enum.Enum):
     SISTEMA = "sistema"
     CITA = "cita"
-    PRESUPUESTO = "presupuesto"
     SERVICIO = "servicio"
-    PROMOCION = "promocion"
+    RECORDATORIO = "recordatorio"
+
+class EstadoNotificacion(str, enum.Enum):
+    LEIDA = "leida"
+    NO_LEIDA = "no_leida"
 
 class Notificacion(Base):
-    usuario_id = Column(Integer, ForeignKey("usuario.id"), nullable=False)
-    tipo = Column(Enum(TipoNotificacion), nullable=False)
-    titulo = Column(String, nullable=False)
-    mensaje = Column(String, nullable=False)
-    fecha = Column(DateTime, nullable=False)
-    leida = Column(Boolean, default=False)
-    accion = Column(String)  # URL o acción a realizar
-    grupo_id = Column(Integer, ForeignKey("grupoclientes.id"))
+    __tablename__ = "notificaciones"
 
+    id = Column(Integer, primary_key=True, index=True)
+    titulo = Column(String(200), nullable=False)
+    mensaje = Column(String(1000), nullable=False)
+    tipo = Column(Enum(TipoNotificacion), default=TipoNotificacion.SISTEMA)
+    estado = Column(Enum(EstadoNotificacion), default=EstadoNotificacion.NO_LEIDA)
+    fecha_creacion = Column(DateTime, default=datetime.utcnow)
+    fecha_lectura = Column(DateTime, nullable=True)
+    leida = Column(Boolean, default=False)
+    usuario_id = Column(Integer, ForeignKey('usuarios.id'), nullable=False)
+    cita_id = Column(Integer, ForeignKey('citas.id'), nullable=True)
+    presupuesto_id = Column(Integer, ForeignKey('presupuestos.id'), nullable=True)
+    
     # Relaciones
     usuario = relationship("Usuario", back_populates="notificaciones")
-    grupo = relationship("GrupoClientes", back_populates="notificaciones")
-
+    cita = relationship("Cita", back_populates="notificaciones")
+    presupuesto = relationship("Presupuesto", back_populates="notificaciones")
+    
     def __repr__(self):
-        return f"<Notificacion {self.tipo} - {self.titulo}>" 
+        return f"<Notificacion {self.titulo}>" 

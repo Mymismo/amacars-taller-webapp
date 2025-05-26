@@ -1,118 +1,123 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Container,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Box,
-  Link,
-  Alert,
-  CircularProgress
-} from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+    Box,
+    Button,
+    FormControl,
+    FormLabel,
+    Input,
+    Stack,
+    Text,
+    useToast,
+    Link,
+} from '@chakra-ui/react';
+import { Link as RouterLink } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../../api/config';
+
+interface LoginForm {
+    email: string;
+    password: string;
+}
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const { login, isLoading } = useAuth();
-  const navigate = useNavigate();
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>();
+    const { login } = useAuth();
+    const toast = useToast();
+    const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    const onSubmit = async (data: LoginForm) => {
+        try {
+            const formData = new FormData();
+            formData.append('username', data.email);
+            formData.append('password', data.password);
+            
+            const response = await api.post('/auth/login', formData);
+            const { access_token, user } = response.data;
+            
+            localStorage.setItem('token', access_token);
+            api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+            
+            toast({
+                title: 'Inicio de sesión exitoso',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+            
+            // Redirigir según el rol del usuario
+            if (user.rol === 'ADMIN') {
+                navigate('/dashboard');
+            } else {
+                navigate('/mis-citas');
+            }
+        } catch (error) {
+            toast({
+                title: 'Error al iniciar sesión',
+                description: 'Credenciales inválidas',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
 
-    try {
-      await login(email, password);
-      navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión');
-    }
-  };
+    return (
+        <Box>
+            <Text fontSize="2xl" fontWeight="bold" mb={8} textAlign="center">
+                Iniciar Sesión
+            </Text>
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <Stack spacing={4}>
+                    <FormControl isInvalid={!!errors.email}>
+                        <FormLabel>Email</FormLabel>
+                        <Input
+                            type="email"
+                            {...register('email', {
+                                required: 'Este campo es requerido',
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: 'Email inválido',
+                                },
+                            })}
+                        />
+                    </FormControl>
 
-  return (
-    <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <Typography component="h1" variant="h5" gutterBottom>
-            Iniciar Sesión
-          </Typography>
+                    <FormControl isInvalid={!!errors.password}>
+                        <FormLabel>Contraseña</FormLabel>
+                        <Input
+                            type="password"
+                            {...register('password', {
+                                required: 'Este campo es requerido',
+                                minLength: {
+                                    value: 6,
+                                    message: 'La contraseña debe tener al menos 6 caracteres',
+                                },
+                            })}
+                        />
+                    </FormControl>
 
-          {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+                    <Button
+                        type="submit"
+                        colorScheme="brand"
+                        size="lg"
+                        fontSize="md"
+                        isLoading={isSubmitting}
+                    >
+                        Iniciar Sesión
+                    </Button>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Correo Electrónico"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Contraseña"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={isLoading}
-            >
-              {isLoading ? <CircularProgress size={24} /> : 'Iniciar Sesión'}
-            </Button>
-            <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Link component={RouterLink} to="/auth/register" variant="body2">
-                ¿No tienes una cuenta? Regístrate
-              </Link>
-            </Box>
-            <Box sx={{ mt: 1, textAlign: 'center' }}>
-              <Link component={RouterLink} to="/auth/reset-password" variant="body2">
-                ¿Olvidaste tu contraseña?
-              </Link>
-            </Box>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
-  );
+                    <Text textAlign="center">
+                        ¿No tienes una cuenta?{' '}
+                        <Link as={RouterLink} to="/register" color="brand.500">
+                            Regístrate aquí
+                        </Link>
+                    </Text>
+                </Stack>
+            </form>
+        </Box>
+    );
 };
 
 export default Login; 

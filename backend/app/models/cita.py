@@ -1,8 +1,9 @@
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum
 from sqlalchemy.orm import relationship
+from app.models.base import Base
+from app.models.servicio import cita_servicio
 import enum
-from .base import Base
-from .servicio import cita_servicio
 
 class EstadoCita(str, enum.Enum):
     PENDIENTE = "pendiente"
@@ -12,22 +13,24 @@ class EstadoCita(str, enum.Enum):
     CANCELADA = "cancelada"
 
 class Cita(Base):
-    usuario_id = Column(Integer, ForeignKey("usuario.id"), nullable=False)
-    vehiculo_id = Column(Integer, ForeignKey("vehiculo.id"), nullable=False)
+    __tablename__ = "citas"
+
+    id = Column(Integer, primary_key=True, index=True)
     fecha_hora = Column(DateTime, nullable=False)
-    estado = Column(Enum(EstadoCita), nullable=False, default=EstadoCita.PENDIENTE)
-    notas_cliente = Column(String)
-    notas_taller = Column(String)
-    tecnico_asignado_id = Column(Integer, ForeignKey("usuario.id"))
-    presupuesto_id = Column(Integer, ForeignKey("presupuesto.id"))
-
+    descripcion = Column(String(500))
+    estado = Column(Enum(EstadoCita), default=EstadoCita.PENDIENTE)
+    cliente_id = Column(Integer, ForeignKey('usuarios.id'), nullable=False)
+    vehiculo_id = Column(Integer, ForeignKey('vehiculos.id'), nullable=False)
+    tecnico_id = Column(Integer, ForeignKey('usuarios.id'))
+    notas = Column(String(1000))
+    presupuesto_id = Column(Integer, ForeignKey("presupuestos.id"))
+    
     # Relaciones
-    usuario = relationship("Usuario", back_populates="citas", foreign_keys=[usuario_id])
+    cliente = relationship("Usuario", foreign_keys=[cliente_id], back_populates="citas_como_cliente")
+    tecnico = relationship("Usuario", foreign_keys=[tecnico_id], back_populates="citas_como_tecnico")
     vehiculo = relationship("Vehiculo", back_populates="citas")
-    servicios = relationship("Servicio", secondary=cita_servicio, back_populates="citas")
-    tecnico = relationship("Usuario", foreign_keys=[tecnico_asignado_id])
     presupuesto = relationship("Presupuesto", back_populates="cita", uselist=False)
-    historial = relationship("HistorialServicio", back_populates="cita", uselist=False)
-
+    servicios = relationship("Servicio", secondary=cita_servicio, back_populates="citas")
+    
     def __repr__(self):
         return f"<Cita {self.fecha_hora} - {self.estado}>" 

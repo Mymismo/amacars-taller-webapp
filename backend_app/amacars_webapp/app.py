@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from flask_cors import CORS
@@ -29,11 +29,16 @@ from src.routes import auth, vehiculo, cita, kilometraje, servicio_taller, remin
 
 # Registrar blueprints
 app.register_blueprint(auth.auth_bp, url_prefix='/api/auth')
-app.register_blueprint(vehiculo.bp, url_prefix='/api/vehiculos')
-app.register_blueprint(cita.bp, url_prefix='/api/citas')
-app.register_blueprint(kilometraje.bp, url_prefix='/api/kilometraje')
-app.register_blueprint(servicio_taller.bp, url_prefix='/api/servicios_taller')
-app.register_blueprint(reminder.bp, url_prefix='/api/reminders')
+app.register_blueprint(vehiculo.vehiculo_bp, url_prefix='/api/vehiculos')
+app.register_blueprint(cita.cita_bp, url_prefix='/api/citas')
+app.register_blueprint(kilometraje.kilometraje_bp, url_prefix='/api/kilometraje')
+app.register_blueprint(servicio_taller.servicio_taller_bp, url_prefix='/api/servicios_taller')
+app.register_blueprint(reminder.reminder_bp, url_prefix='/api/reminders')
+
+# Endpoint de salud
+@app.route('/api/health')
+def health_check():
+    return jsonify({'status': 'ok', 'message': 'El servidor está funcionando correctamente'})
 
 if __name__ == '__main__':
     with app.app_context():

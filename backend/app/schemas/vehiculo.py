@@ -1,32 +1,22 @@
 from typing import Optional
-from datetime import date
+from datetime import datetime
+from pydantic import BaseModel
 from .base import BaseSchema, IDSchema, TimestampSchema
 
 class VehiculoBase(BaseSchema):
     marca: str
     modelo: str
-    ano: int
-    placa: str
+    anio: int
+    matricula: str
     color: Optional[str] = None
-    vin: Optional[str] = None
-    kilometraje: Optional[int] = 0
-    fecha_ultimo_servicio: Optional[date] = None
-    notas: Optional[str] = None
-    usuario_id: int
+    kilometraje: Optional[int] = None
+    propietario_id: Optional[int] = None
 
 class VehiculoCreate(VehiculoBase):
     pass
 
-class VehiculoUpdate(BaseSchema):
-    marca: Optional[str] = None
-    modelo: Optional[str] = None
-    ano: Optional[int] = None
-    placa: Optional[str] = None
-    color: Optional[str] = None
-    vin: Optional[str] = None
-    kilometraje: Optional[int] = None
-    fecha_ultimo_servicio: Optional[date] = None
-    notas: Optional[str] = None
+class VehiculoUpdate(VehiculoBase):
+    pass
 
 class Vehiculo(VehiculoBase, IDSchema, TimestampSchema):
-    pass 
+    fecha_ultima_revision: datetime 
