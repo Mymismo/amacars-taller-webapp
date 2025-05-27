@@ -1,62 +1,59 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     Box,
     Button,
     FormControl,
     FormLabel,
     Input,
-    Stack,
+    VStack,
+    Heading,
     Text,
+    Link as ChakraLink,
     useToast,
-    Link,
     FormErrorMessage,
-    InputGroup,
-    InputRightElement,
-    IconButton,
-    Container,
 } from '@chakra-ui/react';
-import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { authService } from '../../api/services';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { register as registerUser } from '../../api/auth';
 
-interface RegisterForm {
-    nombre_completo: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-    telefono: string;
-}
+const schema = yup.object().shape({
+    nombre_completo: yup.string().required('El nombre completo es requerido'),
+    email: yup.string().email('Email inválido').required('El email es requerido'),
+    password: yup.string()
+        .min(8, 'La contraseña debe tener al menos 8 caracteres')
+        .matches(/[0-9]/, 'La contraseña debe contener al menos un número')
+        .matches(/[a-z]/, 'La contraseña debe contener al menos una letra minúscula')
+        .matches(/[A-Z]/, 'La contraseña debe contener al menos una letra mayúscula')
+        .required('La contraseña es requerida'),
+    confirmPassword: yup.string()
+        .oneOf([yup.ref('password')], 'Las contraseñas no coinciden')
+        .required('Confirma tu contraseña'),
+    telefono: yup.string().optional(),
+    direccion: yup.string().optional(),
+});
+
+type FormData = yup.InferType<typeof schema>;
 
 const Register = () => {
-    const { register, handleSubmit, formState: { errors }, watch } = useForm<RegisterForm>();
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const toast = useToast();
     const navigate = useNavigate();
+    const toast = useToast();
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<FormData>({
+        resolver: yupResolver(schema),
+    });
 
-    const onSubmit = async (data: RegisterForm) => {
+    const onSubmit = async (data: FormData) => {
         try {
-            setIsLoading(true);
-            
-            // Validar formato del nombre
-            const nombreLimpio = data.nombre_completo.trim().replace(/\s+/g, ' ');
-            if (nombreLimpio.length < 3) {
-                toast({
-                    title: 'Error de validación',
-                    description: 'El nombre completo debe tener al menos 3 caracteres',
-                    status: 'error',
-                    duration: 5000,
-                    isClosable: true,
-                });
-                return;
-            }
-
-            await authService.register(data);
+            const { confirmPassword, ...registerData } = data;
+            await registerUser(registerData);
             toast({
                 title: 'Registro exitoso',
-                description: 'Tu cuenta ha sido creada correctamente',
+                description: 'Tu cuenta ha sido creada. Ahora puedes iniciar sesión.',
                 status: 'success',
                 duration: 5000,
                 isClosable: true,
@@ -64,154 +61,112 @@ const Register = () => {
             navigate('/login');
         } catch (error: any) {
             toast({
-                title: 'Error al registrarse',
-                description: error.response?.data?.detail || error.message || 'Ocurrió un error durante el registro',
+                title: 'Error en el registro',
+                description: error.response?.data?.detail || 'Ocurrió un error al registrar la cuenta',
                 status: 'error',
                 duration: 5000,
                 isClosable: true,
             });
-        } finally {
-            setIsLoading(false);
         }
     };
 
     return (
-        <Container maxW="container.sm" py={10}>
-            <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg">
-                <Stack spacing={4}>
-                    <Text fontSize="2xl" fontWeight="bold" textAlign="center">
-                        Crear Nueva Cuenta
-                    </Text>
+        <Box>
+            <VStack spacing={8} align="stretch">
+                <Heading size="xl" textAlign="center">
+                    Registro
+                </Heading>
 
-                    <form onSubmit={handleSubmit(onSubmit)}>
-                        <Stack spacing={4}>
-                            <FormControl isInvalid={!!errors.nombre_completo}>
-                                <FormLabel>Nombre completo</FormLabel>
-                                <Input
-                                    {...register('nombre_completo', {
-                                        required: 'Este campo es requerido',
-                                        minLength: {
-                                            value: 3,
-                                            message: 'El nombre debe tener al menos 3 caracteres'
-                                        },
-                                        pattern: {
-                                            value: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
-                                            message: 'El nombre solo debe contener letras y espacios'
-                                        }
-                                    })}
-                                />
-                                <FormErrorMessage>
-                                    {errors.nombre_completo && errors.nombre_completo.message}
-                                </FormErrorMessage>
-                            </FormControl>
+                <Box as="form" onSubmit={handleSubmit(onSubmit)}>
+                    <VStack spacing={4}>
+                        <FormControl isInvalid={!!errors.nombre_completo}>
+                            <FormLabel>Nombre Completo</FormLabel>
+                            <Input
+                                {...register('nombre_completo')}
+                                placeholder="Ingresa tu nombre completo"
+                            />
+                            <FormErrorMessage>
+                                {errors.nombre_completo?.message}
+                            </FormErrorMessage>
+                        </FormControl>
 
-                            <FormControl isInvalid={!!errors.email}>
-                                <FormLabel>Correo electrónico</FormLabel>
-                                <Input
-                                    type="email"
-                                    {...register('email', {
-                                        required: 'Este campo es requerido',
-                                        pattern: {
-                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                            message: 'Dirección de correo inválida'
-                                        }
-                                    })}
-                                />
-                                <FormErrorMessage>
-                                    {errors.email && errors.email.message}
-                                </FormErrorMessage>
-                            </FormControl>
+                        <FormControl isInvalid={!!errors.email}>
+                            <FormLabel>Email</FormLabel>
+                            <Input
+                                {...register('email')}
+                                type="email"
+                                placeholder="Ingresa tu email"
+                            />
+                            <FormErrorMessage>
+                                {errors.email?.message}
+                            </FormErrorMessage>
+                        </FormControl>
 
-                            <FormControl isInvalid={!!errors.password}>
-                                <FormLabel>Contraseña</FormLabel>
-                                <InputGroup>
-                                    <Input
-                                        type={showPassword ? 'text' : 'password'}
-                                        {...register('password', {
-                                            required: 'Este campo es requerido',
-                                            minLength: {
-                                                value: 8,
-                                                message: 'La contraseña debe tener al menos 8 caracteres'
-                                            }
-                                        })}
-                                    />
-                                    <InputRightElement>
-                                        <IconButton
-                                            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                                            icon={showPassword ? <ViewOffIcon /> : <ViewIcon />}
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            variant="ghost"
-                                        />
-                                    </InputRightElement>
-                                </InputGroup>
-                                <FormErrorMessage>
-                                    {errors.password && errors.password.message}
-                                </FormErrorMessage>
-                            </FormControl>
+                        <FormControl isInvalid={!!errors.password}>
+                            <FormLabel>Contraseña</FormLabel>
+                            <Input
+                                {...register('password')}
+                                type="password"
+                                placeholder="Ingresa tu contraseña"
+                            />
+                            <FormErrorMessage>
+                                {errors.password?.message}
+                            </FormErrorMessage>
+                        </FormControl>
 
-                            <FormControl isInvalid={!!errors.confirmPassword}>
-                                <FormLabel>Confirmar contraseña</FormLabel>
-                                <InputGroup>
-                                    <Input
-                                        type={showConfirmPassword ? 'text' : 'password'}
-                                        {...register('confirmPassword', {
-                                            required: 'Este campo es requerido',
-                                            validate: (value) =>
-                                                value === watch('password') || 'Las contraseñas no coinciden'
-                                        })}
-                                    />
-                                    <InputRightElement>
-                                        <IconButton
-                                            aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                                            icon={showConfirmPassword ? <ViewOffIcon /> : <ViewIcon />}
-                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            variant="ghost"
-                                        />
-                                    </InputRightElement>
-                                </InputGroup>
-                                <FormErrorMessage>
-                                    {errors.confirmPassword && errors.confirmPassword.message}
-                                </FormErrorMessage>
-                            </FormControl>
+                        <FormControl isInvalid={!!errors.confirmPassword}>
+                            <FormLabel>Confirmar Contraseña</FormLabel>
+                            <Input
+                                {...register('confirmPassword')}
+                                type="password"
+                                placeholder="Confirma tu contraseña"
+                            />
+                            <FormErrorMessage>
+                                {errors.confirmPassword?.message}
+                            </FormErrorMessage>
+                        </FormControl>
 
-                            <FormControl isInvalid={!!errors.telefono}>
-                                <FormLabel>Teléfono</FormLabel>
-                                <Input
-                                    type="tel"
-                                    {...register('telefono', {
-                                        required: 'Este campo es requerido',
-                                        pattern: {
-                                            value: /^[0-9]{9,10}$/,
-                                            message: 'Número de teléfono inválido (9-10 dígitos)'
-                                        }
-                                    })}
-                                />
-                                <FormErrorMessage>
-                                    {errors.telefono && errors.telefono.message}
-                                </FormErrorMessage>
-                            </FormControl>
+                        <FormControl isInvalid={!!errors.telefono}>
+                            <FormLabel>Teléfono (opcional)</FormLabel>
+                            <Input
+                                {...register('telefono')}
+                                placeholder="Ingresa tu teléfono"
+                            />
+                            <FormErrorMessage>
+                                {errors.telefono?.message}
+                            </FormErrorMessage>
+                        </FormControl>
 
-                            <Button
-                                type="submit"
-                                colorScheme="blue"
-                                size="lg"
-                                fontSize="md"
-                                isLoading={isLoading}
-                            >
-                                Crear cuenta
-                            </Button>
-                        </Stack>
-                    </form>
+                        <FormControl isInvalid={!!errors.direccion}>
+                            <FormLabel>Dirección (opcional)</FormLabel>
+                            <Input
+                                {...register('direccion')}
+                                placeholder="Ingresa tu dirección"
+                            />
+                            <FormErrorMessage>
+                                {errors.direccion?.message}
+                            </FormErrorMessage>
+                        </FormControl>
 
-                    <Text mt={4} textAlign="center">
-                        ¿Ya tienes una cuenta?{' '}
-                        <Link as={RouterLink} to="/login" color="blue.500">
-                            Inicia sesión aquí
-                        </Link>
-                    </Text>
-                </Stack>
-            </Box>
-        </Container>
+                        <Button
+                            type="submit"
+                            colorScheme="blue"
+                            width="full"
+                            isLoading={isSubmitting}
+                        >
+                            Registrarse
+                        </Button>
+                    </VStack>
+                </Box>
+
+                <Text textAlign="center">
+                    ¿Ya tienes una cuenta?{' '}
+                    <ChakraLink as={RouterLink} to="/login" color="blue.500">
+                        Inicia sesión
+                    </ChakraLink>
+                </Text>
+            </VStack>
+        </Box>
     );
 };
 

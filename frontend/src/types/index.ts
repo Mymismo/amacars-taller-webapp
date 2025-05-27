@@ -1,13 +1,22 @@
 // Tipos de usuario y autenticación
+export type RolUsuario = 'ADMIN' | 'MECANICO' | 'RECEPCIONISTA' | 'CLIENTE';
+
 export interface User {
   id: number;
+  nombre_completo: string;
   email: string;
-  nombre: string;
-  apellidos: string;
+  rol: string;
+  activo: boolean;
   telefono?: string;
   direccion?: string;
-  rol: 'admin' | 'mecanico' | 'cliente';
-  is_active: boolean;
+}
+
+export interface UserUpdate {
+  nombre?: string;
+  apellidos?: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
 }
 
 export interface LoginCredentials {
@@ -32,13 +41,13 @@ export interface Vehiculo {
   id: number;
   marca: string;
   modelo: string;
-  ano: number;
-  placa: string;
-  vin: string;
+  anio: string;
+  matricula: string;
+  kilometraje: string;
   color: string;
+  tipo: string;
   cliente_id: number;
-  notas?: string;
-  usuario: User;
+  fecha_registro: string;
 }
 
 // Tipos de servicio
@@ -47,7 +56,7 @@ export interface Servicio {
   nombre: string;
   descripcion: string;
   precio: number;
-  duracion: number;
+  duracion_estimada: number;
   activo: boolean;
 }
 
@@ -56,31 +65,32 @@ export interface Cita {
   id: number;
   fecha: string;
   hora: string;
-  estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada';
-  servicio: Servicio;
-  usuario: User;
-  vehiculo: Vehiculo;
+  estado: EstadoCita;
   notas?: string;
+  cliente_id: number;
+  vehiculo_id: number;
+  mecanico_id?: number;
+  servicio_id: number;
+  cliente?: User;
+  vehiculo?: Vehiculo;
+  mecanico?: User;
 }
 
 // Tipos de presupuesto
 export interface Presupuesto {
   id: number;
   cita_id: number;
+  descripcion: string;
+  mano_obra: number;
+  coste_piezas: number;
   total: number;
-  estado: 'pendiente' | 'aceptado' | 'rechazado';
+  estado: EstadoPresupuesto;
   fecha_emision: string;
   fecha_validez: string;
-  detalles: string;
+  notas?: string;
 }
 
 // Enums
-export enum RolUsuario {
-    ADMIN = 'ADMIN',
-    TECNICO = 'TECNICO',
-    CLIENTE = 'CLIENTE'
-}
-
 export enum EstadoCita {
     PENDIENTE = 'PENDIENTE',
     CONFIRMADA = 'CONFIRMADA',
@@ -103,9 +113,10 @@ export enum TipoServicio {
 }
 
 export enum TipoNotificacion {
-    CITA = 'CITA',
-    PRESUPUESTO = 'PRESUPUESTO',
-    SISTEMA = 'SISTEMA'
+    INFO = 'INFO',
+    EXITO = 'EXITO',
+    ADVERTENCIA = 'ADVERTENCIA',
+    ERROR = 'ERROR'
 }
 
 export enum EstadoNotificacion {
@@ -182,12 +193,12 @@ export interface GrupoClientes {
 
 export interface Notificacion {
     id: number;
-    usuario_id: number;
     titulo: string;
     mensaje: string;
+    tipo: TipoNotificacion;
     leida: boolean;
-    fecha_creacion: string;
-    fecha_lectura?: string;
+    fecha: string;
+    usuario_id: number;
 }
 
 // Tipos de respuesta API
@@ -208,7 +219,7 @@ export interface PaginatedResponse<T> {
 
 // Estado de autenticación
 export interface AuthState {
-    user: Usuario | null;
+    user: User | null;
     token: string | null;
     isAuthenticated: boolean;
 } 

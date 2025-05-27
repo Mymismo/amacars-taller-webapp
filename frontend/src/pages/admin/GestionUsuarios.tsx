@@ -1,96 +1,124 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Button,
-  Box
-} from '@mui/material';
+    Box,
+    Container,
+    Table,
+    Thead,
+    Tbody,
+    Tr,
+    Th,
+    Td,
+    Button,
+    Heading,
+    useToast,
+    Badge,
+    HStack,
+    IconButton
+} from '@chakra-ui/react';
+import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import { useAuth } from '../../contexts/AuthContext';
-import { api } from '../../api/config';
+import { axiosInstance } from '../../api/config';
 
 interface Usuario {
-  id: number;
-  nombre_completo: string;
-  email: string;
-  rol: string;
-  activo: boolean;
+    id: number;
+    nombre_completo: string;
+    email: string;
+    rol: string;
+    activo: boolean;
 }
 
 const GestionUsuarios: React.FC = () => {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const { user } = useAuth();
+    const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+    const { user } = useAuth();
+    const toast = useToast();
 
-  useEffect(() => {
-    const fetchUsuarios = async () => {
-      try {
-        const response = await api.get('/api/v1/usuarios');
-        if (response.status === 200) {
-          setUsuarios(response.data);
+    useEffect(() => {
+        const fetchUsuarios = async () => {
+            try {
+                const response = await axiosInstance.get('/usuarios');
+                setUsuarios(response.data);
+            } catch (error) {
+                console.error('Error al cargar usuarios:', error);
+                toast({
+                    title: 'Error',
+                    description: 'No se pudieron cargar los usuarios',
+                    status: 'error',
+                    duration: 5000,
+                    isClosable: true,
+                });
+            }
+        };
+
+        if (user?.rol === 'ADMIN') {
+            fetchUsuarios();
         }
-      } catch (error) {
-        console.error('Error al cargar usuarios:', error);
-      }
-    };
+    }, [user, toast]);
 
-    if (user?.rol === 'ADMIN') {
-      fetchUsuarios();
-    }
-  }, [user]);
+    return (
+        <Container maxW="container.xl" py={5}>
+            <Box mb={5}>
+                <Heading size="lg" mb={4}>
+                    Gestión de Usuarios
+                </Heading>
 
-  return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Gestión de Usuarios
-        </Typography>
+                <Button
+                    leftIcon={<AddIcon />}
+                    colorScheme="blue"
+                    mb={5}
+                >
+                    Nuevo Usuario
+                </Button>
 
-        <Button 
-          variant="contained" 
-          color="primary" 
-          sx={{ mb: 3 }}
-        >
-          Nuevo Usuario
-        </Button>
-
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Rol</TableCell>
-                <TableCell>Estado</TableCell>
-                <TableCell>Acciones</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {usuarios.map((usuario) => (
-                <TableRow key={usuario.id}>
-                  <TableCell>{usuario.id}</TableCell>
-                  <TableCell>{usuario.nombre_completo}</TableCell>
-                  <TableCell>{usuario.email}</TableCell>
-                  <TableCell>{usuario.rol}</TableCell>
-                  <TableCell>{usuario.activo ? 'Activo' : 'Inactivo'}</TableCell>
-                  <TableCell>
-                    <Button size="small" color="primary">Editar</Button>
-                    <Button size="small" color="error">Eliminar</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-    </Container>
-  );
+                <Box overflowX="auto">
+                    <Table variant="simple">
+                        <Thead>
+                            <Tr>
+                                <Th>ID</Th>
+                                <Th>Nombre</Th>
+                                <Th>Email</Th>
+                                <Th>Rol</Th>
+                                <Th>Estado</Th>
+                                <Th>Acciones</Th>
+                            </Tr>
+                        </Thead>
+                        <Tbody>
+                            {usuarios.map((usuario) => (
+                                <Tr key={usuario.id}>
+                                    <Td>{usuario.id}</Td>
+                                    <Td>{usuario.nombre_completo}</Td>
+                                    <Td>{usuario.email}</Td>
+                                    <Td>{usuario.rol}</Td>
+                                    <Td>
+                                        <Badge
+                                            colorScheme={usuario.activo ? 'green' : 'red'}
+                                        >
+                                            {usuario.activo ? 'Activo' : 'Inactivo'}
+                                        </Badge>
+                                    </Td>
+                                    <Td>
+                                        <HStack spacing={2}>
+                                            <IconButton
+                                                aria-label="Editar usuario"
+                                                icon={<EditIcon />}
+                                                size="sm"
+                                                colorScheme="blue"
+                                            />
+                                            <IconButton
+                                                aria-label="Eliminar usuario"
+                                                icon={<DeleteIcon />}
+                                                size="sm"
+                                                colorScheme="red"
+                                            />
+                                        </HStack>
+                                    </Td>
+                                </Tr>
+                            ))}
+                        </Tbody>
+                    </Table>
+                </Box>
+            </Box>
+        </Container>
+    );
 };
 
 export default GestionUsuarios; 

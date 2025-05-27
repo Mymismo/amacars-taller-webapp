@@ -9,7 +9,9 @@ import AuthLayout from '../layouts/AuthLayout';
 // Páginas públicas
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
+import TestLogin from '../pages/auth/TestLogin';
 import Home from '../pages/Home';
+import Unauthorized from '../pages/Unauthorized';
 
 // Páginas de administrador
 import Dashboard from '../pages/admin/Dashboard';
@@ -19,20 +21,36 @@ import GestionServicios from '../pages/admin/GestionServicios';
 // Páginas de cliente
 import MisCitas from '../pages/cliente/MisCitas';
 import NuevaCita from '../pages/cliente/NuevaCita';
+import MisVehiculos from '../pages/cliente/MisVehiculos';
+import NuevoVehiculo from '../pages/cliente/NuevoVehiculo';
+import EditarVehiculo from '../pages/cliente/EditarVehiculo';
 import MiPerfil from '../pages/cliente/MiPerfil';
 
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { isAuthenticated } = useAuth();
-    return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
-};
+// Páginas de mecánico
+import CitasAsignadas from '../pages/mecanico/CitasAsignadas';
+import HistorialServicios from '../pages/mecanico/HistorialServicios';
 
-const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, isAuthenticated } = useAuth();
-    return isAuthenticated && user?.rol === 'admin' ? (
-        <>{children}</>
-    ) : (
-        <Navigate to="/unauthorized" />
-    );
+// Páginas de recepcionista
+import GestionCitas from '../pages/recepcionista/GestionCitas';
+import GestionClientes from '../pages/recepcionista/GestionClientes';
+
+interface ProtectedRouteProps {
+    children: React.ReactNode;
+    allowedRoles?: string[];
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles = [] }) => {
+    const { isAuthenticated, user } = useAuth();
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.rol)) {
+        return <Navigate to="/unauthorized" replace />;
+    }
+
+    return <>{children}</>;
 };
 
 const AppRoutes = () => {
@@ -42,35 +60,37 @@ const AppRoutes = () => {
             <Route element={<AuthLayout />}>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/test-login" element={<TestLogin />} />
             </Route>
 
             {/* Rutas protegidas */}
             <Route element={<MainLayout />}>
                 <Route path="/" element={<Home />} />
-                
+                <Route path="/unauthorized" element={<Unauthorized />} />
+
                 {/* Rutas de administrador */}
                 <Route
                     path="/dashboard"
                     element={
-                        <AdminRoute>
+                        <ProtectedRoute allowedRoles={['ADMIN']}>
                             <Dashboard />
-                        </AdminRoute>
+                        </ProtectedRoute>
                     }
                 />
                 <Route
                     path="/usuarios"
                     element={
-                        <AdminRoute>
+                        <ProtectedRoute allowedRoles={['ADMIN']}>
                             <GestionUsuarios />
-                        </AdminRoute>
+                        </ProtectedRoute>
                     }
                 />
                 <Route
                     path="/servicios"
                     element={
-                        <AdminRoute>
+                        <ProtectedRoute allowedRoles={['ADMIN']}>
                             <GestionServicios />
-                        </AdminRoute>
+                        </ProtectedRoute>
                     }
                 />
 
@@ -78,28 +98,91 @@ const AppRoutes = () => {
                 <Route
                     path="/mis-citas"
                     element={
-                        <PrivateRoute>
+                        <ProtectedRoute allowedRoles={['CLIENTE']}>
                             <MisCitas />
-                        </PrivateRoute>
-                    }
-                />
-                <Route
-                    path="/nueva-cita"
-                    element={
-                        <PrivateRoute>
-                            <NuevaCita />
-                        </PrivateRoute>
+                        </ProtectedRoute>
                     }
                 />
                 <Route
                     path="/mi-perfil"
                     element={
-                        <PrivateRoute>
+                        <ProtectedRoute allowedRoles={['CLIENTE', 'ADMIN', 'MECANICO', 'RECEPCIONISTA']}>
                             <MiPerfil />
-                        </PrivateRoute>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/nueva-cita"
+                    element={
+                        <ProtectedRoute allowedRoles={['CLIENTE']}>
+                            <NuevaCita />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/mis-vehiculos"
+                    element={
+                        <ProtectedRoute allowedRoles={['CLIENTE']}>
+                            <MisVehiculos />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/mis-vehiculos/nuevo"
+                    element={
+                        <ProtectedRoute allowedRoles={['CLIENTE']}>
+                            <NuevoVehiculo />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/mis-vehiculos/editar/:id"
+                    element={
+                        <ProtectedRoute allowedRoles={['CLIENTE']}>
+                            <EditarVehiculo />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Rutas de mecánico */}
+                <Route
+                    path="/citas-asignadas"
+                    element={
+                        <ProtectedRoute allowedRoles={['MECANICO']}>
+                            <CitasAsignadas />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/historial-servicios"
+                    element={
+                        <ProtectedRoute allowedRoles={['MECANICO']}>
+                            <HistorialServicios />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Rutas de recepcionista */}
+                <Route
+                    path="/gestion-citas"
+                    element={
+                        <ProtectedRoute allowedRoles={['RECEPCIONISTA']}>
+                            <GestionCitas />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/gestion-clientes"
+                    element={
+                        <ProtectedRoute allowedRoles={['RECEPCIONISTA']}>
+                            <GestionClientes />
+                        </ProtectedRoute>
                     }
                 />
             </Route>
+
+            {/* Ruta por defecto - redirige a la página principal */}
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );
 };

@@ -1,26 +1,46 @@
-import axios from '../config/axios';
-import { Vehiculo } from '../types/vehiculo';
+import { axiosInstance } from './config';
 
+export interface VehiculoInput {
+    marca: string;
+    modelo: string;
+    anio: string;
+    matricula: string;
+    kilometraje: string;
+    color: string;
+    tipo: string;
+    cliente_id: number;
+}
+
+export interface Vehiculo extends VehiculoInput {
+    id: number;
+    fecha_registro: string;
+}
+
+// Obtener todos los vehículos del cliente actual
 export const getVehiculosCliente = async (): Promise<Vehiculo[]> => {
-  const response = await axios.get('/api/v1/vehiculos');
-  return response.data;
+    const response = await axiosInstance.get('/vehiculos/mis-vehiculos');
+    return response.data;
 };
 
-export const getVehiculoById = async (id: number): Promise<Vehiculo> => {
-  const response = await axios.get(`/api/v1/vehiculos/${id}`);
-  return response.data;
+// Obtener un vehículo específico
+export const getVehiculo = async (id: number): Promise<Vehiculo> => {
+    const response = await axiosInstance.get(`/vehiculos/${id}`);
+    return response.data;
 };
 
-export const crearVehiculo = async (data: Omit<Vehiculo, 'id' | 'created_at' | 'updated_at'>): Promise<Vehiculo> => {
-  const response = await axios.post('/api/v1/vehiculos', data);
-  return response.data;
+// Registrar un nuevo vehículo
+export const registrarVehiculo = async (vehiculo: VehiculoInput): Promise<Vehiculo> => {
+    const response = await axiosInstance.post('/vehiculos', vehiculo);
+    return response.data;
 };
 
-export const actualizarVehiculo = async (id: number, data: Partial<Vehiculo>): Promise<Vehiculo> => {
-  const response = await axios.put(`/api/v1/vehiculos/${id}`, data);
-  return response.data;
+// Actualizar un vehículo
+export const actualizarVehiculo = async (id: number, vehiculo: Partial<VehiculoInput>): Promise<Vehiculo> => {
+    const response = await axiosInstance.put(`/vehiculos/${id}`, vehiculo);
+    return response.data;
 };
 
+// Eliminar un vehículo
 export const eliminarVehiculo = async (id: number): Promise<void> => {
-  await axios.delete(`/api/v1/vehiculos/${id}`);
+    await axiosInstance.delete(`/vehiculos/${id}`);
 }; 

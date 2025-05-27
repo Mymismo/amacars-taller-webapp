@@ -15,18 +15,27 @@ import {
   Stack,
   Button,
   IconButton,
-  HStack
+  HStack,
+  VStack,
+  useColorModeValue,
+  SimpleGrid,
+  Icon
 } from '@chakra-ui/react';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCitasCliente, cancelarCita } from '../../api/citas';
 import { formatDate } from '../../utils/dates';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { EstadoCita } from '../../types';
+import { FiCalendar, FiClock, FiTool } from 'react-icons/fi';
+import { Link as RouterLink } from 'react-router-dom';
 
 const MisCitas = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const { data: citas, isLoading } = useQuery({
     queryKey: ['citasCliente'],
@@ -65,6 +74,23 @@ const MisCitas = () => {
     }
   });
 
+  const getBadgeColor = (estado: EstadoCita) => {
+    switch (estado) {
+      case EstadoCita.PENDIENTE:
+        return 'yellow';
+      case EstadoCita.CONFIRMADA:
+        return 'green';
+      case EstadoCita.EN_PROCESO:
+        return 'blue';
+      case EstadoCita.COMPLETADA:
+        return 'purple';
+      case EstadoCita.CANCELADA:
+        return 'red';
+      default:
+        return 'gray';
+    }
+  };
+
   if (isLoading) {
     return <Box>Cargando...</Box>;
   }
@@ -84,80 +110,76 @@ const MisCitas = () => {
   }
 
   return (
-    <Container maxW="container.xl" py={5}>
-      <Stack spacing={5}>
+    <Container maxW="container.xl" py={8}>
+      <VStack spacing={8} align="stretch">
         <HStack justify="space-between">
-          <Heading>Mis Citas</Heading>
-          <Button colorScheme="blue" onClick={() => navigate('/citas/nueva')}>
-            Agendar cita
+          <Heading size="lg" color="amacars.primary.600">Mis Citas</Heading>
+          <Button
+            as={RouterLink}
+            to="/nueva-cita"
+            colorScheme="amacars.primary"
+            leftIcon={<Icon as={FiCalendar} />}
+          >
+            Agendar Nueva Cita
           </Button>
         </HStack>
-        
-        <Table variant="simple">
-          <Thead>
-            <Tr>
-              <Th>Fecha y Hora</Th>
-              <Th>Vehículo</Th>
-              <Th>Servicios</Th>
-              <Th>Estado</Th>
-              <Th>Acciones</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {citas.map((cita) => (
-              <Tr key={cita.id}>
-                <Td>{formatDate(cita.fecha_hora)}</Td>
-                <Td>{cita.vehiculo?.marca} {cita.vehiculo?.modelo}</Td>
-                <Td>
-                  <Stack>
-                    {cita.servicios.map((servicio) => (
-                      <Text key={servicio.id}>{servicio.nombre}</Text>
-                    ))}
-                  </Stack>
-                </Td>
-                <Td>
-                  <Badge
-                    colorScheme={
-                      cita.estado === 'PENDIENTE'
-                        ? 'yellow'
-                        : cita.estado === 'CONFIRMADA'
-                        ? 'green'
-                        : cita.estado === 'EN_PROCESO'
-                        ? 'blue'
-                        : cita.estado === 'COMPLETADA'
-                        ? 'green'
-                        : 'red'
-                    }
-                  >
+
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
+          {citas.map((cita) => (
+            <Box
+              key={cita.id}
+              bg={useColorModeValue('white', 'gray.800')}
+              p={6}
+              borderRadius="lg"
+              boxShadow="md"
+              transition="all 0.3s"
+              _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
+            >
+              <VStack align="start" spacing={4}>
+                <HStack justify="space-between" width="100%">
+                  <Badge colorScheme={getBadgeColor(cita.estado)}>
                     {cita.estado}
                   </Badge>
-                </Td>
-                <Td>
-                  <HStack spacing={2}>
-                    {cita.estado === 'PENDIENTE' && (
-                      <>
-                        <IconButton
-                          aria-label="Editar cita"
-                          icon={<EditIcon />}
-                          size="sm"
-                          onClick={() => navigate(`/citas/editar/${cita.id}`)}
-                        />
-                        <IconButton
-                          aria-label="Cancelar cita"
-                          icon={<DeleteIcon />}
-                          size="sm"
-                          colorScheme="red"
-                          onClick={() => cancelarCitaMutation.mutate(cita.id)}
-                        />
-                      </>
-                    )}
+                  <Text fontSize="sm" color="gray.500">
+                    ID: {cita.id}
+                  </Text>
+                </HStack>
+
+                <VStack align="start" spacing={2}>
+                  <HStack>
+                    <Icon as={FiCalendar} color="amacars.primary.500" />
+                    <Text>{cita.fecha}</Text>
                   </HStack>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </Stack>
+                  <HStack>
+                    <Icon as={FiClock} color="amacars.primary.500" />
+                    <Text>{cita.hora}</Text>
+                  </HStack>
+                  <HStack>
+                    <Icon as={FiTool} color="amacars.primary.500" />
+                    <Text>{cita.servicio.nombre}</Text>
+                  </HStack>
+                </VStack>
+
+                <Box pt={2} width="100%">
+                  <Text fontSize="sm" fontWeight="bold">
+                    Vehículo:
+                  </Text>
+                  <Text>{`${cita.vehiculo.marca} ${cita.vehiculo.modelo}`}</Text>
+                </Box>
+
+                <Button
+                  width="100%"
+                  variant="outline"
+                  colorScheme="amacars.primary"
+                  size="sm"
+                >
+                  Ver Detalles
+                </Button>
+              </VStack>
+            </Box>
+          ))}
+        </SimpleGrid>
+      </VStack>
     </Container>
   );
 };

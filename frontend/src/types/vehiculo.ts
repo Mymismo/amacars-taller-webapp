@@ -1,17 +1,34 @@
 import { Usuario } from './usuario';
 
 export interface Vehiculo {
-  id: number;
+  id: string;
   marca: string;
   modelo: string;
-  año: number;
-  placa: string;
+  anio: number;
+  matricula: string;
+  kilometraje: number;
   color?: string;
-  kilometraje?: number;
-  vin?: string;
-  usuario_id: number;
-  usuario?: Usuario;
-  activo: boolean;
-  created_at: string;
-  updated_at: string;
+  tipo?: string;
+  cliente_id: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface VehiculoInput {
+  marca: string;
+  modelo: string;
+  anio: number | string;
+  matricula: string;
+  kilometraje: number | string;
+  color?: string;
+  tipo?: string;
+  cliente_id: string;
+}
+
+export interface VehiculoFilter {
+  marca?: string;
+  modelo?: string;
+  anio?: number;
+  matricula?: string;
+  cliente_id?: string;
 } 

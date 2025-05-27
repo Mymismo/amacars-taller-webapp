@@ -1,22 +1,21 @@
 import axios from 'axios';
 
-export const api = axios.create({
-    baseURL: 'http://localhost:8000/api/v1',
+// Usar la URL base configurada en el proxy de Vite
+const API_BASE_URL = '/api';
+
+export const axiosInstance = axios.create({
+    baseURL: API_BASE_URL,
     headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json'
+        'Content-Type': 'application/json',
     },
-    withCredentials: true
 });
 
-api.interceptors.request.use(
+// Interceptor para agregar el token a las peticiones
+axiosInstance.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
-        }
-        if (config.url?.includes('/auth/login')) {
-            config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
         return config;
     },
@@ -25,11 +24,13 @@ api.interceptors.request.use(
     }
 );
 
-api.interceptors.response.use(
+// Interceptor para manejar errores de respuesta
+axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
             window.location.href = '/login';
         }
         return Promise.reject(error);

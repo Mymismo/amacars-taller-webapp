@@ -12,17 +12,26 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        ws: true,
       }
     }
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@emotion/react': path.resolve(__dirname, 'node_modules/@emotion/react')
     },
+    dedupe: ['@emotion/react']
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom', '@chakra-ui/react', '@emotion/react', '@emotion/styled']
+        }
+      }
+    }
   },
 })

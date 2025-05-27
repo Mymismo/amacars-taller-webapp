@@ -14,8 +14,10 @@ import {
     useColorModeValue,
     Stack,
     createIcon,
+    Flex,
 } from '@chakra-ui/react';
 import { FiClock, FiTool, FiThumbsUp, FiShield } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthContext';
 
 const Arrow = createIcon({
     displayName: 'Arrow',
@@ -31,143 +33,329 @@ const Arrow = createIcon({
 });
 
 const Feature = ({ icon, title, text }: { icon: any; title: string; text: string }) => {
+    const bgBox = useColorModeValue('white', 'gray.800');
+    const iconColor = useColorModeValue('amacars.primary.500', 'amacars.primary.300');
+    const hoverBg = useColorModeValue('amacars.primary.50', 'amacars.primary.900');
+    
     return (
         <VStack
             align="start"
-            p={6}
-            bg={useColorModeValue('white', 'gray.800')}
-            borderRadius="lg"
-            boxShadow="md"
+            p={8}
+            bg={bgBox}
+            borderRadius="xl"
+            boxShadow="xl"
             spacing={4}
+            transition="all 0.3s"
+            _hover={{
+                transform: 'translateY(-8px)',
+                boxShadow: '2xl',
+                bg: hoverBg,
+            }}
         >
-            <Icon as={icon} w={10} h={10} color="brand.500" />
-            <Heading size="md">{title}</Heading>
-            <Text color="gray.600">{text}</Text>
+            <Flex
+                w={16}
+                h={16}
+                align={'center'}
+                justify={'center'}
+                color={iconColor}
+                rounded={'full'}
+                bg={useColorModeValue('amacars.primary.50', 'amacars.primary.900')}
+                mb={2}
+            >
+                <Icon as={icon} w={8} h={8} />
+            </Flex>
+            <Heading size="md" fontWeight="700">{title}</Heading>
+            <Text color={useColorModeValue('gray.600', 'gray.300')}>{text}</Text>
         </VStack>
     );
 };
 
 const Home = () => {
+    const { isAuthenticated } = useAuth();
+    const bgGradient = useColorModeValue(
+        'linear(to-r, amacars.primary.600, amacars.secondary.500)',
+        'linear(to-r, amacars.primary.800, amacars.secondary.700)'
+    );
+
     return (
         <>
-            <Container maxW={'3xl'}>
-                <Stack
-                    as={Box}
-                    textAlign={'center'}
-                    spacing={{ base: 8, md: 14 }}
-                    py={{ base: 20, md: 36 }}
-                >
-                    <Heading
-                        fontWeight={600}
-                        fontSize={{ base: '2xl', sm: '4xl', md: '6xl' }}
-                        lineHeight={'110%'}
-                    >
-                        AMACARS <br />
-                        <Text as={'span'} color={'brand.400'}>
-                            Tu Taller de Confianza
-                        </Text>
-                    </Heading>
-                    <Text color={'gray.500'}>
-                        En AMACARS nos dedicamos a brindar el mejor servicio para tu vehículo.
-                        Contamos con técnicos especializados y la última tecnología para
-                        garantizar un trabajo de calidad. ¡Agenda tu cita hoy mismo!
-                    </Text>
+            <Box 
+                position="relative" 
+                overflow="hidden"
+                minH="90vh"
+                display="flex"
+                alignItems="center"
+                bgGradient={useColorModeValue(
+                    'linear(to-r, blue.50, amacars.primary.50)',
+                    'linear(to-r, gray.900, amacars.primary.900)'
+                )}
+                _before={{
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    bgGradient: useColorModeValue(
+                        'linear(45deg, transparent 0%, amacars.primary.50 100%)',
+                        'linear(45deg, transparent 0%, amacars.primary.900 100%)'
+                    ),
+                    opacity: 0.8,
+                    zIndex: 0,
+                }}
+            >
+                <Container maxW={'7xl'} position="relative" zIndex={1}>
                     <Stack
-                        direction={'column'}
-                        spacing={3}
-                        align={'center'}
-                        alignSelf={'center'}
-                        position={'relative'}
+                        as={Box}
+                        textAlign={'center'}
+                        spacing={{ base: 8, md: 14 }}
+                        py={{ base: 20, md: 36 }}
                     >
-                        <Button
-                            as={RouterLink}
-                            to="/nueva-cita"
-                            colorScheme={'brand'}
-                            bg={'brand.400'}
-                            rounded={'full'}
-                            px={6}
-                            _hover={{
-                                bg: 'brand.500',
-                            }}
+                        <Heading
+                            fontWeight={800}
+                            fontSize={{ base: '3xl', sm: '4xl', md: '6xl' }}
+                            lineHeight={'110%'}
                         >
-                            Agendar Cita
-                        </Button>
-                        <Box>
-                            <Icon
-                                as={Arrow}
-                                color={useColorModeValue('gray.800', 'gray.300')}
-                                w={71}
-                                position={'absolute'}
-                                right={-71}
-                                top={'10px'}
-                            />
-                            <Text
-                                fontSize={'lg'}
-                                fontFamily={'Caveat'}
-                                position={'absolute'}
-                                right={'-125px'}
-                                top={'-15px'}
-                                transform={'rotate(10deg)'}
+                            AMACARS <br />
+                            <Text 
+                                as={'span'} 
+                                bgGradient={bgGradient} 
+                                bgClip="text"
+                                fontSize={{ base: '4xl', sm: '5xl', md: '7xl' }}
                             >
-                                ¡Empieza ahora!
+                                Tu Taller de Confianza
                             </Text>
-                        </Box>
+                        </Heading>
+                        <Text 
+                            color={useColorModeValue('gray.600', 'gray.300')}
+                            fontSize={{ base: 'lg', md: 'xl' }}
+                            maxW={'3xl'}
+                            mx="auto"
+                        >
+                            En AMACARS nos dedicamos a brindar el mejor servicio para tu vehículo.
+                            Contamos con técnicos especializados y la última tecnología para
+                            garantizar un trabajo de calidad.
+                        </Text>
+                        <Stack
+                            direction={{ base: 'column', sm: 'row' }}
+                            spacing={4}
+                            align={'center'}
+                            alignSelf={'center'}
+                            position={'relative'}
+                        >
+                            {!isAuthenticated ? (
+                                <Button
+                                    as={RouterLink}
+                                    to="/login"
+                                    colorScheme="amacars.primary"
+                                    bg="amacars.primary.500"
+                                    rounded={'full'}
+                                    px={8}
+                                    py={7}
+                                    fontSize="lg"
+                                    _hover={{
+                                        bg: 'amacars.primary.600',
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: 'xl',
+                                    }}
+                                >
+                                    Iniciar Sesión
+                                </Button>
+                            ) : (
+                                <Button
+                                    as={RouterLink}
+                                    to="/nueva-cita"
+                                    colorScheme="amacars.primary"
+                                    bg="amacars.primary.500"
+                                    rounded={'full'}
+                                    px={8}
+                                    py={7}
+                                    fontSize="lg"
+                                    _hover={{
+                                        bg: 'amacars.primary.600',
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: 'xl',
+                                    }}
+                                >
+                                    Agendar Cita
+                                </Button>
+                            )}
+                            <Button
+                                as={RouterLink}
+                                to="/sobre-nosotros"
+                                variant={'outline'}
+                                colorScheme="amacars.primary"
+                                rounded={'full'}
+                                px={8}
+                                py={7}
+                                fontSize="lg"
+                                _hover={{
+                                    bg: 'amacars.primary.50',
+                                    transform: 'translateY(-2px)',
+                                }}
+                            >
+                                Conoce Más
+                            </Button>
+                        </Stack>
                     </Stack>
-                </Stack>
-            </Container>
+                </Container>
+            </Box>
 
             {/* Features Section */}
-            <Container maxW="container.xl" py={16}>
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={8}>
-                    <Feature
-                        icon={FiClock}
-                        title="Servicio Rápido"
-                        text="Optimizamos nuestros procesos para minimizar el tiempo de espera y maximizar la eficiencia."
-                    />
-                    <Feature
-                        icon={FiTool}
-                        title="Expertos Calificados"
-                        text="Nuestro equipo de técnicos está altamente capacitado y certificado para todo tipo de reparaciones."
-                    />
-                    <Feature
-                        icon={FiThumbsUp}
-                        title="Calidad Garantizada"
-                        text="Utilizamos repuestos originales y ofrecemos garantía en todos nuestros servicios."
-                    />
-                    <Feature
-                        icon={FiShield}
-                        title="Confianza Total"
-                        text="Transparencia en nuestros procesos y presupuestos sin sorpresas."
-                    />
-                </SimpleGrid>
-            </Container>
+            <Box py={20} bg={useColorModeValue('gray.50', 'gray.900')}>
+                <Container maxW="container.xl">
+                    <SimpleGrid 
+                        columns={{ base: 1, md: 2, lg: 4 }} 
+                        spacing={10}
+                        px={{ base: 4, md: 8 }}
+                    >
+                        <Feature
+                            icon={FiClock}
+                            title="Servicio Rápido"
+                            text="Optimizamos nuestros procesos para minimizar el tiempo de espera y maximizar la eficiencia."
+                        />
+                        <Feature
+                            icon={FiTool}
+                            title="Expertos Calificados"
+                            text="Nuestro equipo de técnicos está altamente capacitado y certificado para todo tipo de reparaciones."
+                        />
+                        <Feature
+                            icon={FiThumbsUp}
+                            title="Calidad Garantizada"
+                            text="Utilizamos repuestos originales y ofrecemos garantía en todos nuestros servicios."
+                        />
+                        <Feature
+                            icon={FiShield}
+                            title="Confianza Total"
+                            text="Transparencia en nuestros procesos y presupuestos sin sorpresas."
+                        />
+                    </SimpleGrid>
+                </Container>
+            </Box>
 
             {/* CTA Section */}
-            <Box bg="gray.50" py={16}>
-                <Container maxW="container.xl">
+            <Box 
+                bg={useColorModeValue('white', 'gray.800')} 
+                py={20}
+                position="relative"
+                _before={{
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '50%',
+                    bgGradient: useColorModeValue(
+                        'linear(to-b, amacars.primary.50, transparent)',
+                        'linear(to-b, gray.900, gray.800)'
+                    ),
+                }}
+            >
+                <Container maxW="container.xl" position="relative">
                     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10} alignItems="center">
                         <Box>
-                            <Heading mb={4}>¿Necesitas un Servicio?</Heading>
-                            <Text fontSize="lg" color="gray.600" mb={6}>
+                            <Heading 
+                                mb={4} 
+                                bgGradient={bgGradient} 
+                                bgClip="text"
+                                fontSize={{ base: '3xl', md: '4xl' }}
+                                fontWeight="800"
+                            >
+                                ¿Necesitas un Servicio?
+                            </Heading>
+                            <Text 
+                                fontSize="xl" 
+                                color={useColorModeValue('gray.600', 'gray.300')} 
+                                mb={6}
+                            >
                                 Agenda una cita con nosotros y experimenta un servicio
                                 profesional y personalizado para tu vehículo.
                             </Text>
-                            <Button
-                                as={RouterLink}
-                                to="/login"
-                                size="lg"
-                                colorScheme="brand"
-                            >
-                                Agendar Cita
-                            </Button>
+                            {!isAuthenticated ? (
+                                <Stack direction={{ base: 'column', sm: 'row' }} spacing={4}>
+                                    <Button
+                                        as={RouterLink}
+                                        to="/login"
+                                        size="lg"
+                                        colorScheme="amacars.primary"
+                                        bg="amacars.primary.500"
+                                        px={8}
+                                        _hover={{
+                                            bg: 'amacars.primary.600',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: 'lg',
+                                        }}
+                                    >
+                                        Iniciar Sesión
+                                    </Button>
+                                    <Button
+                                        as={RouterLink}
+                                        to="/register"
+                                        size="lg"
+                                        variant="outline"
+                                        colorScheme="amacars.primary"
+                                        px={8}
+                                        _hover={{
+                                            bg: 'amacars.primary.50',
+                                            transform: 'translateY(-2px)',
+                                        }}
+                                    >
+                                        Registrarse
+                                    </Button>
+                                </Stack>
+                            ) : (
+                                <Button
+                                    as={RouterLink}
+                                    to="/nueva-cita"
+                                    size="lg"
+                                    colorScheme="amacars.primary"
+                                    px={8}
+                                    _hover={{
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: 'lg',
+                                    }}
+                                >
+                                    Agendar Cita
+                                </Button>
+                            )}
                         </Box>
-                        <Box>
-                            <Image
-                                src="/mechanic.jpg"
-                                alt="Mecánico trabajando"
-                                borderRadius="lg"
-                                boxShadow="lg"
-                            />
+                        <Box 
+                            bg={useColorModeValue('amacars.primary.50', 'amacars.primary.900')}
+                            p={8}
+                            borderRadius="xl"
+                            boxShadow="2xl"
+                            position="relative"
+                            overflow="hidden"
+                            _before={{
+                                content: '""',
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                bgGradient: useColorModeValue(
+                                    'linear(45deg, transparent 0%, amacars.secondary.50 100%)',
+                                    'linear(45deg, transparent 0%, amacars.secondary.900 100%)'
+                                ),
+                                opacity: 0.3,
+                            }}
+                        >
+                            <VStack spacing={4} position="relative" zIndex={1}>
+                                <Icon 
+                                    as={FiTool} 
+                                    w={20} 
+                                    h={20} 
+                                    color={useColorModeValue('amacars.primary.500', 'amacars.primary.200')} 
+                                />
+                                <Text
+                                    fontSize="xl"
+                                    fontWeight="bold"
+                                    textAlign="center"
+                                    color={useColorModeValue('gray.700', 'white')}
+                                >
+                                    Servicio Profesional y Confiable
+                                </Text>
+                            </VStack>
                         </Box>
                     </SimpleGrid>
                 </Container>

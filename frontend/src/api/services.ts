@@ -1,4 +1,4 @@
-import { api } from './config';
+import { axiosInstance } from './config';
 import { Usuario, Vehiculo, Servicio, Cita, Presupuesto, GrupoClientes, Notificacion } from '../types';
 
 // Servicios de Autenticación
@@ -9,7 +9,7 @@ export const authService = {
         params.append('password', password);
         
         try {
-            const response = await api.post('/auth/login', params.toString(), {
+            const response = await axiosInstance.post('/auth/login', params.toString(), {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 }
@@ -17,6 +17,7 @@ export const authService = {
             
             if (response.data.access_token) {
                 localStorage.setItem('token', response.data.access_token);
+                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
             }
             
             return response.data;
@@ -50,13 +51,13 @@ export const authService = {
             nombre: nombre,
             apellidos: apellidos,
             telefono: data.telefono,
-            rol: 'cliente' as const,
+            rol: 'CLIENTE' as const,
             es_activo: true,
             es_superusuario: false
         };
         
         try {
-            const response = await api.post('/auth/registro', userData);
+            const response = await axiosInstance.post('/auth/registro', userData);
             return response.data;
         } catch (error: any) {
             console.error('Error en el registro:', error.response?.data || error);
@@ -64,31 +65,45 @@ export const authService = {
         }
     },
     getCurrentUser: async () => {
-        const response = await api.get('/auth/me');
-        return response.data;
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('No hay token de autenticación');
+        }
+        
+        try {
+            const response = await axiosInstance.get('/auth/me');
+            return response.data;
+        } catch (error: any) {
+            if (error.response?.status === 401) {
+                localStorage.removeItem('token');
+                delete axiosInstance.defaults.headers.common['Authorization'];
+            }
+            console.error('Error al obtener usuario actual:', error.response?.data || error);
+            throw error;
+        }
     },
 };
 
 // Servicios de Usuarios
 export const usuariosService = {
     getAll: async () => {
-        const response = await api.get('/usuarios/');
+        const response = await axiosInstance.get('/usuarios/');
         return response.data;
     },
     getById: async (id: number) => {
-        const response = await api.get(`/usuarios/${id}`);
+        const response = await axiosInstance.get(`/usuarios/${id}`);
         return response.data;
     },
     create: async (data: Partial<Usuario>) => {
-        const response = await api.post('/usuarios/', data);
+        const response = await axiosInstance.post('/usuarios/', data);
         return response.data;
     },
     update: async (id: number, data: Partial<Usuario>) => {
-        const response = await api.put(`/usuarios/${id}`, data);
+        const response = await axiosInstance.put(`/usuarios/${id}`, data);
         return response.data;
     },
     delete: async (id: number) => {
-        const response = await api.delete(`/usuarios/${id}`);
+        const response = await axiosInstance.delete(`/usuarios/${id}`);
         return response.data;
     },
 };
@@ -96,27 +111,27 @@ export const usuariosService = {
 // Servicios de Vehículos
 export const vehiculosService = {
     getAll: async () => {
-        const response = await api.get('/vehiculos/');
+        const response = await axiosInstance.get('/vehiculos/');
         return response.data;
     },
     getById: async (id: number) => {
-        const response = await api.get(`/vehiculos/${id}`);
+        const response = await axiosInstance.get(`/vehiculos/${id}`);
         return response.data;
     },
     getByPropietario: async (propietarioId: number) => {
-        const response = await api.get(`/vehiculos/propietario/${propietarioId}`);
+        const response = await axiosInstance.get(`/vehiculos/propietario/${propietarioId}`);
         return response.data;
     },
     create: async (data: Partial<Vehiculo>) => {
-        const response = await api.post('/vehiculos/', data);
+        const response = await axiosInstance.post('/vehiculos/', data);
         return response.data;
     },
     update: async (id: number, data: Partial<Vehiculo>) => {
-        const response = await api.put(`/vehiculos/${id}`, data);
+        const response = await axiosInstance.put(`/vehiculos/${id}`, data);
         return response.data;
     },
     delete: async (id: number) => {
-        const response = await api.delete(`/vehiculos/${id}`);
+        const response = await axiosInstance.delete(`/vehiculos/${id}`);
         return response.data;
     },
 };
@@ -124,23 +139,23 @@ export const vehiculosService = {
 // Servicios de Servicios
 export const serviciosService = {
     getAll: async () => {
-        const response = await api.get('/servicios/');
+        const response = await axiosInstance.get('/servicios/');
         return response.data;
     },
     getById: async (id: number) => {
-        const response = await api.get(`/servicios/${id}`);
+        const response = await axiosInstance.get(`/servicios/${id}`);
         return response.data;
     },
     create: async (data: Partial<Servicio>) => {
-        const response = await api.post('/servicios/', data);
+        const response = await axiosInstance.post('/servicios/', data);
         return response.data;
     },
     update: async (id: number, data: Partial<Servicio>) => {
-        const response = await api.put(`/servicios/${id}`, data);
+        const response = await axiosInstance.put(`/servicios/${id}`, data);
         return response.data;
     },
     delete: async (id: number) => {
-        const response = await api.delete(`/servicios/${id}`);
+        const response = await axiosInstance.delete(`/servicios/${id}`);
         return response.data;
     },
 };
@@ -148,23 +163,23 @@ export const serviciosService = {
 // Servicios de Citas
 export const citasService = {
     getAll: async () => {
-        const response = await api.get('/citas/');
+        const response = await axiosInstance.get('/citas/');
         return response.data;
     },
     getById: async (id: number) => {
-        const response = await api.get(`/citas/${id}`);
+        const response = await axiosInstance.get(`/citas/${id}`);
         return response.data;
     },
     getByCliente: async (clienteId: number) => {
-        const response = await api.get(`/citas/cliente/${clienteId}`);
+        const response = await axiosInstance.get(`/citas/cliente/${clienteId}`);
         return response.data;
     },
     create: async (data: Partial<Cita>) => {
-        const response = await api.post('/citas/', data);
+        const response = await axiosInstance.post('/citas/', data);
         return response.data;
     },
     update: async (id: number, data: Partial<Cita>) => {
-        const response = await api.put(`/citas/${id}`, data);
+        const response = await axiosInstance.put(`/citas/${id}`, data);
         return response.data;
     },
     delete: async (id: number) => {
