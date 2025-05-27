@@ -9,7 +9,7 @@ import {
     Text,
     useColorModeValue,
 } from '@chakra-ui/react';
-import { FiHome, FiUsers, FiSettings, FiCalendar, FiUser } from 'react-icons/fi';
+import { FiHome, FiUsers, FiSettings, FiCalendar, FiUser, FiTruck } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 
 interface NavItemProps {
@@ -21,9 +21,9 @@ interface NavItemProps {
 const NavItem = ({ icon, children, to }: NavItemProps) => {
     const location = useLocation();
     const isActive = location.pathname === to;
-    const activeBg = useColorModeValue('brand.50', 'brand.900');
+    const activeBg = useColorModeValue('amacars.primary.50', 'amacars.primary.900');
     const inactiveBg = useColorModeValue('transparent', 'transparent');
-    const activeColor = useColorModeValue('brand.700', 'brand.100');
+    const activeColor = useColorModeValue('amacars.primary.700', 'amacars.primary.200');
     const inactiveColor = useColorModeValue('gray.600', 'gray.400');
 
     return (
@@ -32,11 +32,12 @@ const NavItem = ({ icon, children, to }: NavItemProps) => {
             to={to}
             style={{ textDecoration: 'none' }}
             _focus={{ boxShadow: 'none' }}
+            w="full"
         >
             <Flex
                 align="center"
-                p="4"
-                mx="4"
+                p="3"
+                mx="2"
                 borderRadius="lg"
                 role="group"
                 cursor="pointer"
@@ -46,15 +47,18 @@ const NavItem = ({ icon, children, to }: NavItemProps) => {
                     bg: activeBg,
                     color: activeColor,
                 }}
+                transition="all 0.2s"
             >
                 {icon && (
                     <Icon
-                        mr="4"
+                        mr="3"
                         fontSize="16"
                         as={icon}
                     />
                 )}
-                {children}
+                <Text fontSize="sm" fontWeight={isActive ? "semibold" : "medium"}>
+                    {children}
+                </Text>
             </Flex>
         </Link>
     );
@@ -62,44 +66,58 @@ const NavItem = ({ icon, children, to }: NavItemProps) => {
 
 const Sidebar = () => {
     const { user } = useAuth();
-    const isAdmin = user?.rol === 'admin';
+    
+    const renderNavItems = () => {
+        switch (user?.rol) {
+            case 'ADMIN':
+                return (
+                    <>
+                        <NavItem icon={FiHome} to="/dashboard">Dashboard</NavItem>
+                        <NavItem icon={FiUsers} to="/usuarios">Usuarios</NavItem>
+                        <NavItem icon={FiSettings} to="/servicios">Servicios</NavItem>
+                        <NavItem icon={FiCalendar} to="/citas">Todas las Citas</NavItem>
+                    </>
+                );
+            case 'CLIENTE':
+                return (
+                    <>
+                        <NavItem icon={FiCalendar} to="/mis-citas">Mis Citas</NavItem>
+                        <NavItem icon={FiCalendar} to="/nueva-cita">Nueva Cita</NavItem>
+                        <NavItem icon={FiTruck} to="/mis-vehiculos">Mis Vehículos</NavItem>
+                        <NavItem icon={FiUser} to="/mi-perfil">Mi Perfil</NavItem>
+                    </>
+                );
+            case 'MECANICO':
+                return (
+                    <>
+                        <NavItem icon={FiCalendar} to="/mis-servicios">Mis Servicios</NavItem>
+                        <NavItem icon={FiUser} to="/mi-perfil">Mi Perfil</NavItem>
+                    </>
+                );
+            case 'RECEPCIONISTA':
+                return (
+                    <>
+                        <NavItem icon={FiCalendar} to="/citas">Gestionar Citas</NavItem>
+                        <NavItem icon={FiUsers} to="/clientes">Clientes</NavItem>
+                        <NavItem icon={FiUser} to="/mi-perfil">Mi Perfil</NavItem>
+                    </>
+                );
+            default:
+                return null;
+        }
+    };
 
     return (
         <Box
             bg={useColorModeValue('white', 'gray.900')}
             borderRight="1px"
             borderRightColor={useColorModeValue('gray.200', 'gray.700')}
-            w={{ base: 'full', md: 60 }}
-            pos="fixed"
+            w="full"
             h="full"
-            display={{ base: 'none', md: 'block' }}
+            py={2}
         >
-            <Stack spacing={0} py={5}>
-                {isAdmin ? (
-                    <>
-                        <NavItem icon={FiHome} to="/dashboard">
-                            Dashboard
-                        </NavItem>
-                        <NavItem icon={FiUsers} to="/usuarios">
-                            Usuarios
-                        </NavItem>
-                        <NavItem icon={FiSettings} to="/servicios">
-                            Servicios
-                        </NavItem>
-                    </>
-                ) : (
-                    <>
-                        <NavItem icon={FiCalendar} to="/mis-citas">
-                            Mis Citas
-                        </NavItem>
-                        <NavItem icon={FiCalendar} to="/nueva-cita">
-                            Nueva Cita
-                        </NavItem>
-                        <NavItem icon={FiUser} to="/mi-perfil">
-                            Mi Perfil
-                        </NavItem>
-                    </>
-                )}
+            <Stack spacing={1}>
+                {renderNavItems()}
             </Stack>
         </Box>
     );

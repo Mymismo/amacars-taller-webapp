@@ -1,4 +1,4 @@
-import { axiosInstance } from './config';
+import { axiosInstance } from './axiosInstance';
 import { Cita, EstadoCita } from '../types';
 
 interface CitaInput {
@@ -28,13 +28,18 @@ export const asignarMecanico = async (citaId: number, mecanicoId: number): Promi
 
 // Obtener citas del cliente actual
 export const getCitasCliente = async (): Promise<Cita[]> => {
-    const response = await axiosInstance.get('/citas/mis-citas');
-    return response.data;
+    try {
+        const response = await axiosInstance.get('/citas');
+        return response.data;
+    } catch (error: any) {
+        console.error('Error al obtener citas:', error.response?.data || error.message);
+        throw new Error(error.response?.data?.detail || 'Error al cargar las citas');
+    }
 };
 
 // Obtener citas asignadas al mecánico
 export const getCitasAsignadas = async (): Promise<Cita[]> => {
-    const response = await axiosInstance.get('/citas/asignadas');
+    const response = await axiosInstance.get('/citas/tecnico/asignadas');
     return response.data;
 };
 
@@ -75,6 +80,11 @@ export const actualizarCita = async (id: number, data: Partial<CitaInput>): Prom
 };
 
 // Cancelar una cita
-export const cancelarCita = async (id: number): Promise<void> => {
-    await axiosInstance.post(`/citas/${id}/cancelar`);
+export const cancelarCita = async (citaId: number): Promise<void> => {
+    try {
+        await axiosInstance.post(`/citas/${citaId}/cancelar`);
+    } catch (error: any) {
+        console.error('Error al cancelar cita:', error.response?.data || error.message);
+        throw new Error(error.response?.data?.detail || 'Error al cancelar la cita');
+    }
 }; 

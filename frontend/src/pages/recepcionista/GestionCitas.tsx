@@ -207,6 +207,7 @@ const GestionCitas = () => {
                                         <Badge colorScheme={getBadgeColor(cita.estado)}>
                                             {cita.estado}
                                         </Badge>
+
                                     </Td>
                                     <Td>
                                         <HStack spacing={2}>

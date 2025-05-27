@@ -117,20 +117,20 @@ const Navbar = () => {
             position="sticky"
             top="0"
             zIndex="sticky"
-            shadow="sm"
+            h="64px"
         >
-            <Container maxW="container.xl">
-                <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
+            <Container maxW="container.xl" h="full">
+                <Flex h="full" alignItems="center" justifyContent="space-between">
                     <IconButton
-                        size={'md'}
+                        size="md"
                         icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-                        aria-label={'Open Menu'}
+                        aria-label="Open Menu"
                         display={{ md: 'none' }}
                         onClick={isOpen ? onClose : onOpen}
                         variant="ghost"
                         color="amacars.primary.500"
                     />
-                    <HStack spacing={8} alignItems={'center'}>
+                    <HStack spacing={4} alignItems="center">
                         <Box>
                             <Link as={RouterLink} to="/">
                                 <Image
@@ -143,7 +143,7 @@ const Navbar = () => {
                             </Link>
                         </Box>
                         <HStack
-                            as={'nav'}
+                            as="nav"
                             spacing={1}
                             display={{ base: 'none', md: 'flex' }}>
                             {navLinks.map((link) => (
@@ -157,116 +157,72 @@ const Navbar = () => {
                             ))}
                         </HStack>
                     </HStack>
-                    <Flex alignItems={'center'}>
+                    <Flex alignItems="center">
                         {user ? (
-                            <HStack spacing={3}>
-                                <Menu>
-                                    <Tooltip label="Menú de usuario">
-                                        <MenuButton
-                                            as={Button}
-                                            variant="ghost"
-                                            rightIcon={<ChevronDownIcon />}
-                                            _hover={{ bg: useColorModeValue('amacars.primary.50', 'amacars.primary.900') }}
-                                        >
-                                            <HStack>
-                                                <Avatar
-                                                    size={'sm'}
-                                                    name={`${user.nombre} ${user.apellidos}`}
-                                                    bg="amacars.primary.500"
-                                                    color="white"
-                                                />
-                                                <Text display={{ base: 'none', md: 'block' }}>
-                                                    {user.nombre}
-                                                </Text>
-                                            </HStack>
-                                        </MenuButton>
-                                    </Tooltip>
-                                    <MenuList
-                                        borderColor={borderColor}
-                                        shadow="lg"
+                            <Menu>
+                                <Tooltip label="Menú de usuario">
+                                    <MenuButton
+                                        as={Button}
+                                        variant="ghost"
+                                        rightIcon={<ChevronDownIcon />}
+                                        size="sm"
+                                        _hover={{ bg: useColorModeValue('amacars.primary.50', 'amacars.primary.900') }}
                                     >
-                                        <MenuItem 
-                                            as={RouterLink} 
-                                            to="/mi-perfil"
-                                            _hover={{ bg: useColorModeValue('amacars.primary.50', 'amacars.primary.900') }}
-                                            icon={<Icon as={FaUser} color="amacars.primary.500" />}
-                                        >
-                                            Mi Perfil
-                                        </MenuItem>
-                                        <Divider />
-                                        <MenuItem 
-                                            onClick={handleLogout}
-                                            color="red.500"
-                                            _hover={{ bg: useColorModeValue('red.50', 'red.900') }}
-                                            icon={<Icon as={FaSignOutAlt} color="red.500" />}
-                                        >
-                                            Cerrar Sesión
-                                        </MenuItem>
-                                    </MenuList>
-                                </Menu>
-                                <Button
-                                    leftIcon={<Icon as={FaSignOutAlt} />}
-                                    onClick={handleLogout}
-                                    colorScheme="red"
-                                    variant="solid"
-                                    size="md"
-                                    display={{ base: 'none', md: 'flex' }}
-                                    _hover={{
-                                        bg: 'red.600',
-                                        transform: 'translateY(-1px)',
-                                        shadow: 'md',
-                                    }}
+                                        <HStack>
+                                            <Avatar
+                                                size="sm"
+                                                name={`${user.nombre} ${user.apellidos}`}
+                                                bg="amacars.primary.500"
+                                                color="white"
+                                            />
+                                            <Text 
+                                                display={{ base: 'none', md: 'block' }}
+                                                fontSize="sm"
+                                                fontWeight="medium"
+                                            >
+                                                {user.nombre}
+                                            </Text>
+                                        </HStack>
+                                    </MenuButton>
+                                </Tooltip>
+                                <MenuList
+                                    borderColor={borderColor}
+                                    shadow="lg"
+                                    py={2}
                                 >
-                                    Cerrar Sesión
-                                </Button>
-                            </HStack>
+                                    <MenuItem 
+                                        as={RouterLink} 
+                                        to="/mi-perfil"
+                                        _hover={{ bg: useColorModeValue('amacars.primary.50', 'amacars.primary.900') }}
+                                        icon={<Icon as={FaUser} color="amacars.primary.500" />}
+                                        fontSize="sm"
+                                    >
+                                        Mi Perfil
+                                    </MenuItem>
+                                    <Divider my={2} />
+                                    <MenuItem 
+                                        onClick={handleLogout}
+                                        color="red.500"
+                                        _hover={{ bg: useColorModeValue('red.50', 'red.900') }}
+                                        icon={<Icon as={FaSignOutAlt} />}
+                                        fontSize="sm"
+                                    >
+                                        Cerrar Sesión
+                                    </MenuItem>
+                                </MenuList>
+                            </Menu>
                         ) : (
                             <Button
                                 as={RouterLink}
                                 to="/login"
                                 colorScheme="amacars.primary"
-                                size={'md'}
-                                fontWeight="semibold"
-                                px={6}
-                                _hover={{
-                                    transform: 'translateY(-1px)',
-                                    shadow: 'md',
-                                }}
+                                size="sm"
                             >
                                 Iniciar Sesión
                             </Button>
                         )}
                     </Flex>
                 </Flex>
-
-                {isOpen ? (
-                    <Box pb={4} display={{ md: 'none' }}>
-                        <Stack as={'nav'} spacing={1}>
-                            {navLinks.map((link) => (
-                                <NavLink 
-                                    key={link.path} 
-                                    to={link.path}
-                                    isActive={location.pathname === link.path}
-                                >
-                                    {link.text}
-                                </NavLink>
-                            ))}
-                            {user && (
-                                <Button
-                                    leftIcon={<Icon as={FaSignOutAlt} />}
-                                    onClick={handleLogout}
-                                    colorScheme="red"
-                                    variant="ghost"
-                                    justifyContent="flex-start"
-                                    width="100%"
-                                    px={3}
-                                >
-                                    Cerrar Sesión
-                                </Button>
-                            )}
-                        </Stack>
-                    </Box>
-                ) : null}
             </Container>
         </Box>
     );

@@ -1,4 +1,5 @@
-import { axiosInstance } from './config';
+import { axiosInstance } from './axiosInstance';
+import { Vehiculo } from '../types';
 
 export interface VehiculoInput {
     marca: string;
@@ -9,11 +10,6 @@ export interface VehiculoInput {
     color: string;
     tipo: string;
     cliente_id: number;
-}
-
-export interface Vehiculo extends VehiculoInput {
-    id: number;
-    fecha_registro: string;
 }
 
 // Obtener todos los vehículos del cliente actual

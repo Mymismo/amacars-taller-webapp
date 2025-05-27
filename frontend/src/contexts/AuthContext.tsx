@@ -1,116 +1,104 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { axiosInstance } from '../api/config';
-import { User } from '../types';
-import { getInitialRoute } from '../utils/routeUtils';
+import { User, AuthState } from '../types';
+import { getCurrentUser, login as loginApi } from '../api/auth';
 
-interface AuthContextType {
-    user: User | null;
-    login: (email: string, password: string) => Promise<void>;
-    logout: () => void;
-    isAuthenticated: boolean;
-    isLoading: boolean;
+interface AuthContextType extends AuthState {
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  updateUser: (user: User) => void;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth debe ser usado dentro de un AuthProvider');
-    }
-    return context;
-};
-
-// Función para normalizar roles
-const normalizeRole = (role: string): string => {
-    return role.toUpperCase();
-};
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
+  const [state, setState] = useState<AuthState>({
+    user: JSON.parse(localStorage.getItem('user') || 'null'),
+    token: localStorage.getItem('token'),
+    isAuthenticated: false,
+    isLoading: true
+  });
 
-    const login = async (email: string, password: string) => {
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
         try {
-            const params = new URLSearchParams();
-            params.append('username', email);
-            params.append('password', password);
-
-            const response = await axiosInstance.post('/auth/login', params.toString(), {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            });
-
-            const { access_token, user: userData } = response.data;
-            localStorage.setItem('token', access_token);
-            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-            
-            // Normalizar el rol antes de guardar el usuario
-            userData.rol = normalizeRole(userData.rol);
-            setUser(userData);
-
-            // Redirigir al usuario a su ruta inicial
-            navigate(getInitialRoute(userData.rol));
+          const user = await getCurrentUser();
+          localStorage.setItem('user', JSON.stringify(user));
+          setState({
+            user,
+            token,
+            isAuthenticated: true,
+            isLoading: false
+          });
         } catch (error) {
-            console.error('Error en login:', error);
-            throw error;
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setState({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false
+          });
         }
+      } else {
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
-        delete axiosInstance.defaults.headers.common['Authorization'];
-        setUser(null);
-        navigate('/login');
-    };
+    initAuth();
+  }, []);
 
-    useEffect(() => {
-        const initAuth = async () => {
-            setIsLoading(true);
-            try {
-                const token = localStorage.getItem('token');
-                if (token) {
-                    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                    const response = await axiosInstance.get('/auth/me');
-                    const userData = response.data;
-                    // Normalizar el rol antes de guardar el usuario
-                    userData.rol = normalizeRole(userData.rol);
-                    setUser(userData);
-                    
-                    // Redirigir al usuario a su ruta inicial si está en la raíz
-                    if (window.location.pathname === '/') {
-                        navigate(getInitialRoute(userData.rol));
-                    }
-                }
-            } catch (error) {
-                console.error('Error al inicializar autenticación:', error);
-                localStorage.removeItem('token');
-                delete axiosInstance.defaults.headers.common['Authorization'];
-                setUser(null);
-                navigate('/login');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        initAuth();
-    }, [navigate]);
-
-    const value = {
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await loginApi(email, password);
+      const { access_token, user } = response;
+      const fullToken = `Bearer ${access_token}`;
+      localStorage.setItem('token', fullToken);
+      localStorage.setItem('user', JSON.stringify(user));
+      setState({
         user,
-        login,
-        logout,
-        isAuthenticated: !!user,
-        isLoading
-    };
+        token: fullToken,
+        isAuthenticated: true,
+        isLoading: false
+      });
+    } catch (error) {
+      throw error;
+    }
+  };
 
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setState({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false
+    });
+  };
+
+  const updateUser = (user: User) => {
+    localStorage.setItem('user', JSON.stringify(user));
+    setState(prev => ({
+      ...prev,
+      user
+    }));
+  };
+
+  return (
+    <AuthContext.Provider value={{ ...state, login, logout, updateUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
 
 export default AuthContext; 

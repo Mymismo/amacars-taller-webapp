@@ -4,35 +4,35 @@ const colors = {
     amacars: {
         // Colores principales del logo
         primary: {
-            50: '#E6F2FF',
-            100: '#CCE5FF',
-            200: '#99CCFF',
-            300: '#66B2FF',
-            400: '#3399FF',
-            500: '#0080FF', // Color principal
-            600: '#0066CC',
-            700: '#004C99',
-            800: '#003366',
-            900: '#001933',
+            50: '#e6f2ff',
+            100: '#b3d9ff',
+            200: '#80bfff',
+            300: '#4da6ff',
+            400: '#1a8cff',
+            500: '#0073e6',
+            600: '#005cb3',
+            700: '#004480',
+            800: '#002d4d',
+            900: '#00161a',
         },
         // Color secundario/acento
         secondary: {
-            50: '#FFF5E6',
-            100: '#FFEBCC',
-            200: '#FFD699',
-            300: '#FFC266',
-            400: '#FFAD33',
-            500: '#FF9900', // Color secundario
-            600: '#CC7A00',
-            700: '#995C00',
-            800: '#663D00',
-            900: '#331F00',
+            50: '#fff5e6',
+            100: '#ffe0b3',
+            200: '#ffcc80',
+            300: '#ffb84d',
+            400: '#ffa31a',
+            500: '#e68a00',
+            600: '#b36b00',
+            700: '#804c00',
+            800: '#4d2e00',
+            900: '#1a0f00',
         },
     },
 };
 
 const fonts = {
-    heading: '"Montserrat", sans-serif',
+    heading: '"Inter", sans-serif',
     body: '"Inter", sans-serif',
 };
 
@@ -43,26 +43,20 @@ const components = {
             borderRadius: 'md',
         },
         variants: {
-            solid: {
-                bg: 'amacars.primary.500',
+            solid: (props: { colorScheme: string }) => ({
+                bg: props.colorScheme === 'amacars.primary' ? 'amacars.primary.500' : undefined,
                 color: 'white',
                 _hover: {
-                    bg: 'amacars.primary.600',
-                    transform: 'translateY(-1px)',
-                    boxShadow: 'md',
+                    bg: props.colorScheme === 'amacars.primary' ? 'amacars.primary.600' : undefined,
                 },
-                _active: {
-                    bg: 'amacars.primary.700',
-                    transform: 'translateY(0)',
-                },
-            },
-            outline: {
-                borderColor: 'amacars.primary.500',
-                color: 'amacars.primary.500',
+            }),
+            outline: (props: { colorScheme: string }) => ({
+                borderColor: props.colorScheme === 'amacars.primary' ? 'amacars.primary.500' : undefined,
+                color: props.colorScheme === 'amacars.primary' ? 'amacars.primary.500' : undefined,
                 _hover: {
-                    bg: 'amacars.primary.50',
+                    bg: props.colorScheme === 'amacars.primary' ? 'amacars.primary.50' : undefined,
                 },
-            },
+            }),
         },
         defaultProps: {
             colorScheme: 'amacars.primary',
@@ -88,15 +82,25 @@ const components = {
             },
         },
     },
+    Heading: {
+        baseStyle: {
+            color: 'amacars.primary.600'
+        }
+    },
+    Icon: {
+        baseStyle: {
+            color: 'amacars.primary.500'
+        }
+    }
 };
 
 const styles = {
-    global: (props: { colorMode: 'light' | 'dark' }) => ({
+    global: {
         body: {
-            bg: props.colorMode === 'light' ? 'gray.50' : 'gray.900',
-            color: props.colorMode === 'light' ? 'gray.800' : 'whiteAlpha.900',
+            bg: 'gray.50',
+            color: 'gray.800'
         },
-    }),
+    },
 };
 
 const theme = extendTheme({

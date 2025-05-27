@@ -9,6 +9,7 @@ import AuthLayout from '../layouts/AuthLayout';
 // Páginas públicas
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
+import ConfirmarEmail from '../pages/auth/ConfirmarEmail';
 import TestLogin from '../pages/auth/TestLogin';
 import Home from '../pages/Home';
 import Unauthorized from '../pages/Unauthorized';
@@ -60,6 +61,7 @@ const AppRoutes = () => {
             <Route element={<AuthLayout />}>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/confirmar-email/:token" element={<ConfirmarEmail />} />
                 <Route path="/test-login" element={<TestLogin />} />
             </Route>
 
