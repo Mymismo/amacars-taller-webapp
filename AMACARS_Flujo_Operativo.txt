@@ -1,0 +1,221 @@
+FLUJO OPERATIVO DEL SISTEMA AMACARS
+==================================
+
+GESTIÓN DE USUARIOS Y ACCESOS
+----------------------------
+
+1. Registro de Usuarios
+
+   1.1 Registro de Personal (Administrador)
+       • Alta de recepcionistas y mecánicos
+       • Asignación de roles y permisos
+       • Creación de credenciales iniciales
+       • Configuración de áreas y especialidades
+
+   1.2 Registro de Clientes
+       • Auto-registro a través del portal web/app
+       • Registro asistido por recepcionista
+       • Verificación de email automática
+       • Activación inmediata de cuenta
+
+2. Gestión de Servicios (Administrador)
+    • Catálogo de servicios con precios
+    • Tiempos estimados por servicio
+    • Requisitos y especificaciones
+    • Asignación de especialidades necesarias
+
+PROCESO DE GENERACIÓN DE CITAS
+-----------------------------
+
+1. Canales de Agendamiento
+
+   1.1 Portal Web/Aplicación Móvil (Cliente)
+       • Selección de servicio
+       • Elección de fecha y hora
+       • Registro de vehículo
+       • Descripción del problema
+       • Confirmación automática
+
+   1.2 Presencial/Telefónico (Recepcionista)
+       • Búsqueda/registro de cliente
+       • Verificación de disponibilidad
+       • Registro de información vehicular
+       • Confirmación inmediata
+
+2. Flujo de Verificación y Confirmación
+
+   2.1 Verificación Automática
+       • Disponibilidad de horarios
+       • Capacidad del taller
+       • Mecánicos especializados
+       • Duración estimada del servicio
+
+   2.2 Proceso de Confirmación
+       • Notificación al cliente
+       • Recordatorio 24h antes
+       • Confirmación del cliente
+       • Asignación preliminar de recursos
+
+GESTIÓN DE CITAS ACTIVAS
+------------------------
+
+1. Panel de Recepción
+
+   1.1 Vista General
+       • Calendario diario/semanal
+       • Estado de cada cita
+       • Alertas de próximas llegadas
+       • Conflictos de horario
+
+   1.2 Acciones Disponibles
+       • Modificación de horarios
+       • Reasignación de mecánicos
+       • Actualización de estados
+       • Comunicación con clientes
+
+2. Panel de Mecánicos
+
+   2.1 Vista de Trabajo
+       • Lista de servicios asignados
+       • Priorización de tareas
+       • Tiempos estimados
+       • Historial del vehículo
+
+   2.2 Gestión de Servicios
+       • Inicio/fin de trabajos
+       • Registro de diagnósticos
+       • Documentación fotográfica
+       • Solicitud de repuestos
+
+FLUJO DE TRABAJO DETALLADO
+-------------------------
+
+1. Pre-servicio
+
+   Cliente:
+   • Agenda cita
+   • Recibe confirmación
+   • Obtiene recordatorio
+   • Confirma asistencia
+
+   Recepcionista:
+   • Revisa agenda del día
+   • Confirma recursos
+   • Asigna mecánicos
+   • Prepara documentación
+
+   Sistema:
+   • Verifica disponibilidad
+   • Envía notificaciones
+   • Actualiza calendario
+   • Reserva recursos
+
+2. Durante el Servicio
+
+   Recepcionista:
+   • Recibe al cliente
+   • Actualiza estado
+   • Coordina con mecánicos
+   • Gestiona imprevistos
+
+   Mecánico:
+   • Recibe asignación
+   • Realiza diagnóstico
+   • Ejecuta servicio
+   • Documenta trabajo
+
+   Cliente:
+   • Recibe actualizaciones
+   • Consulta progreso
+   • Aprueba trabajos adicionales
+   • Recibe notificaciones
+
+3. Post-servicio
+
+   Sistema:
+   • Genera informe
+   • Actualiza historial
+   • Programa seguimiento
+   • Solicita feedback
+
+   Recepcionista:
+   • Cierra servicio
+   • Genera factura
+   • Agenda siguiente mantenimiento
+   • Registra satisfacción
+
+   Cliente:
+   • Recibe informe
+   • Califica servicio
+   • Agenda próximo mantenimiento
+   • Recibe recomendaciones
+
+GESTIÓN DE CASOS ESPECIALES
+--------------------------
+
+1. Cancelaciones y Reprogramaciones
+    • Política de cancelación
+    • Proceso de reprogramación
+    • Gestión de lista de espera
+    • Notificaciones automáticas
+
+2. Servicios de Emergencia
+    • Canal prioritario
+    • Asignación inmediata
+    • Reorganización de agenda
+    • Notificación a involucrados
+
+3. Servicios Adicionales
+    • Detección durante diagnóstico
+    • Aprobación del cliente
+    • Actualización de presupuesto
+    • Ajuste de tiempos
+
+INTERACCIÓN ENTRE ROLES
+----------------------
+
+1. Cliente → Recepcionista
+    • Solicitud de información
+    • Consultas de estado
+    • Aprobaciones de servicio
+    • Programación de citas
+
+2. Recepcionista → Mecánico
+    • Asignación de trabajos
+    • Consulta de diagnósticos
+    • Coordinación de tiempos
+    • Solicitud de actualizaciones
+
+3. Mecánico → Cliente
+    • Informes técnicos
+    • Recomendaciones
+    • Explicación de servicios
+    • Documentación del trabajo
+
+4. Sistema → Todos los Roles
+    • Notificaciones automáticas
+    • Alertas y recordatorios
+    • Actualizaciones de estado
+    • Confirmaciones
+
+MÉTRICAS Y SEGUIMIENTO
+---------------------
+
+1. Indicadores Operativos
+    • Tiempo promedio de servicio
+    • Tasa de cumplimiento
+    • Satisfacción del cliente
+    • Eficiencia por mecánico
+
+2. Control de Calidad
+    • Encuestas post-servicio
+    • Seguimiento de garantías
+    • Análisis de recurrencia
+    • Evaluación de mecánicos
+
+Este flujo operativo está diseñado para maximizar la eficiencia del taller mientras mantiene un alto nivel de satisfacción del cliente. Cada rol tiene sus responsabilidades claramente definidas y el sistema facilita la comunicación y coordinación entre todas las partes involucradas.
+
+La automatización de procesos reduce errores humanos y permite un seguimiento detallado de cada servicio, mientras que la interfaz intuitiva facilita la adopción por parte de todos los usuarios.
+
+Atentamente,
+Equipo de Desarrollo AMACARS 

@@ -1,0 +1,20 @@
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, JSON
+from sqlalchemy.orm import relationship
+from app.models.base import Base
+
+class ServicioRealizado(Base):
+    __tablename__ = "servicios_realizados"
+
+    id = Column(Integer, primary_key=True, index=True)
+    historial_id = Column(Integer, ForeignKey("historial_servicios.id"), nullable=False)
+    servicio_id = Column(Integer, ForeignKey("servicios.id"), nullable=False)
+    descripcion = Column(String(500), nullable=False)
+    costo = Column(Float, nullable=False)
+    piezas_utilizadas = Column(JSON)  # Lista de strings
+
+    # Relaciones
+    historial = relationship("HistorialServicio", back_populates="servicios")
+    servicio = relationship("Servicio")
+
+    def __repr__(self):
+        return f"<ServicioRealizado {self.servicio_id} - {self.costo}>" 
